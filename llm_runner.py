@@ -16,6 +16,41 @@ def sanitize_filename(model_name):
     return model_name.replace('/', '_').replace(':', '_')
 
 
+def clean_markdown_code_blocks(content):
+    """Remove Markdown code blocks from the beginning and end of content.
+
+    Args:
+        content: String content that may contain Markdown code blocks
+
+    Returns:
+        Cleaned content without Markdown code block delimiters
+    """
+    if not content:
+        return content
+
+    # Strip whitespace first
+    cleaned = content.strip()
+
+    # Remove opening code block (```language or just ```)
+    # Match ``` followed by optional language identifier and newline
+    if cleaned.startswith('```'):
+        # Find the end of the first line (opening fence)
+        first_newline = cleaned.find('\n')
+        if first_newline != -1:
+            cleaned = cleaned[first_newline + 1:]
+
+    # Remove closing code block (```)
+    # Only remove if it's at the end and on its own line
+    if cleaned.endswith('```'):
+        # Find the last occurrence of ``` that's at the start of a line
+        lines = cleaned.split('\n')
+        if lines and lines[-1].strip() == '```':
+            cleaned = '\n'.join(lines[:-1])
+
+    # Strip any remaining whitespace
+    return cleaned.strip()
+
+
 def create_html_file(model_name, response_content, output_dir='output'):
     """Create HTML file with the model response."""
     Path(output_dir).mkdir(exist_ok=True)
@@ -117,8 +152,11 @@ def main():
         # Call API
         response_content = call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature)
 
+        # Clean Markdown code blocks from response
+        cleaned_content = clean_markdown_code_blocks(response_content)
+
         # Create HTML file
-        filepath = create_html_file(model, response_content, folder_name)
+        filepath = create_html_file(model, cleaned_content, folder_name)
 
         print(f"  → Created: {filepath}")
 
