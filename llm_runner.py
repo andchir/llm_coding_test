@@ -148,6 +148,11 @@ def main():
     # Process each model
     for i, model in enumerate(models, 1):
         print(f"[{i}/{len(models)}] Processing model: {model}")
+        filename = f"{sanitize_filename(model)}.html"
+        filepath = Path(folder_name) / filename
+        if os.path.isfile(filepath):
+            print(f'SKIP {model}')
+            continue
 
         # Call API
         response_content = call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature)
