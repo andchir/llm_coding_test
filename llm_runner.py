@@ -29,7 +29,7 @@ def create_html_file(model_name, response_content, output_dir='output'):
     return filepath
 
 
-def call_llm_api(base_url, api_key, model, prompt, system_prompt):
+def call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature=0.3):
     """Make API call to LLM service."""
     headers = {
         'Authorization': f'Bearer {api_key}',
@@ -48,7 +48,7 @@ def call_llm_api(base_url, api_key, model, prompt, system_prompt):
                 'content': prompt
             }
         ],
-        'temperature': 0.3,
+        'temperature': temperature,
         'stream': False
     }
 
@@ -79,6 +79,8 @@ def main():
     models_str = os.getenv('MODELS')
     prompt = os.getenv('PROMPT')
     system_prompt = os.getenv('SYSTEM_PROMPT')
+    temperature = float(os.getenv('TEMPERATURE', '0.3'))
+    folder_name = os.getenv('FOLDER_NAME', 'output')
 
     # Validate required parameters
     if not base_url:
@@ -113,10 +115,10 @@ def main():
         print(f"[{i}/{len(models)}] Processing model: {model}")
 
         # Call API
-        response_content = call_llm_api(base_url, api_key, model, prompt, system_prompt)
+        response_content = call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature)
 
         # Create HTML file
-        filepath = create_html_file(model, response_content)
+        filepath = create_html_file(model, response_content, folder_name)
 
         print(f"  → Created: {filepath}")
 

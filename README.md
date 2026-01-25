@@ -23,6 +23,8 @@ cp .env-example .env
    - `MODELS` - Comma-separated list of models to test
    - `PROMPT` - The prompt to send to all models
    - `SYSTEM_PROMPT` - System prompt that defines the AI behavior
+   - `TEMPERATURE` - Temperature parameter for API calls (default: 0.3)
+   - `FOLDER_NAME` - Folder name where results are saved (default: output)
 
 ## Usage
 
