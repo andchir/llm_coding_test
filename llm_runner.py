@@ -86,7 +86,7 @@ def call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature=0.
         'temperature': temperature,
         'stream': False,
         'reasoning': {
-            'enabled': False
+            'enabled': True
         }
     }
 
