@@ -3,6 +3,7 @@
 "gen-1769455201-vZ1IrUeSIDMOyYy8p4dj","2026-01-26 19:20:01.076","0.004912",,,0,"0.004912",100,4441,1360,0,"minimax/minimax-m2.1","Inceptron","standard","false","true",,"stop","stop",122500,338,,"coding_test2"
 "gen-1769445736-CwfmJ4p6TokAEaKw8FgS","2026-01-26 16:42:15.946","0.00969",,"-0.000001",0,"0.00969",83,4383,0,4,"z-ai/glm-4.6","Z.AI","standard","false","true",,"stop","stop",130359,2483,,"coding_test"
 "gen-1769345979-jSeSrskZbwgaPgrXJp4G","2026-01-25 12:59:39.050","0.047017",,,0,"0.047017",78,4692,320,0,"openai/gpt-5.1-codex-max-20251204","OpenAI","standard","false","true",,"completed","stop",36499,3936,,"coding_test"
+"gen-1769443307-INp2aXGh6uItOZzZWOfT","2026-01-26 16:01:47.822","0.027391",,,0,0,96,4546,0,0,"qwen/qwen3-max","Alibaba","standard","false","true",,"stop","stop",91840,1147,,"coding_test"
 "gen-1769345830-mXYvtLCOv3dyptEeyPB9","2026-01-25 12:57:10.710","0.171832",,,,"0.171832",78,12264,360,0,"openai/gpt-5.2-20251211","OpenAI","standard","false","true",,"completed","stop",142493,7065,,"coding_test"
 "gen-1769345096-E4hFNHd1zUS20f0bTvKV","2026-01-25 12:44:56.286","0.001682",,0,0,0,96,5577,0,3,"xiaomi/mimo-v2-flash-20251210","AtlasCloud","standard","false","true",,"stop","stop",36330,635,,"coding_test"
 "gen-1769344737-C5t18jvDrPeoGFPkbip8","2026-01-25 12:38:57.921","0.054276",,"-0.001521",0,0,754,3569,390,676,"x-ai/grok-4-07-09","xAI","standard","false","true",,"completed","stop",49625,9282,,"coding_test"
