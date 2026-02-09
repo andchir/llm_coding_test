@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Тетрис - Kimi K2.5 Free</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .main-board {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #game-canvas {
+            display: block;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: #1a1a2e;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 180px;
+        }
+
+        .panel-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .panel-title {
+            color: #fff;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        #next-canvas {
+            display: block;
+            margin: 0 auto;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .score-value, .level-value, .lines-value {
+            color: #fff;
+            font-size: 22px;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .score-value {
+            color: #ffd700;
+        }
+
+        .level-value {
+            color: #ff6b6b;
+        }
+
+        .lines-value {
+            color: #4ecdc4;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-item {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .key {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .game-over-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .game-over-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-over-title {
+            color: #fff;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .final-score {
+            color: #ffd700;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: 600;
+        }
+
+        .restart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .pause-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                gap: 15px;
+            }
+            
+            .main-board {
+                padding: 15px;
+            }
+            
+            .side-panel {
+                min-width: 150px;
+            }
+            
+            .panel-box {
+                padding: 12px;
+            }
+            
+            #game-canvas {
+                width: 240px !important;
+                height: 480px !important;
+            }
+            
+            #next-canvas {
+                width: 80px !important;
+                height: 80px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="main-board">
+            <canvas id="game-canvas" width="300" height="600"></canvas>
+            <div class="pause-indicator">ПАУЗА</div>
+        </div>
+        
+        <div class="side-panel">
+            <div class="panel-box">
+                <div class="panel-title">Следующий</div>
+                <canvas id="next-canvas" width="100" height="100"></canvas>
+            </div>
+            
+            <div class="panel-box">
+                <div class="panel-title">Счет</div>
+                <div class="score-value" id="score">0</div>
+            </div>
+            
+            <div class="panel-box">
+                <div class="panel-title">Уровень</div>
+                <div class="level-value" id="level">1</div>
+            </div>
+            
+            <div class="panel-box">
+                <div class="panel-title">Линии</div>
+                <div class="lines-value" id="lines">0</div>
+            </div>
+            
+            <div class="panel-box">
+                <div class="panel-title">Управление</div>
+                <div class="controls">
+                    <div class="control-item">
+                        <span>Движение</span>
+                        <span class="key">←→</span>
+                    </div>
+                    <div class="control-item">
+                        <span>Поворот</span>
+                        <span class="key">↑</span>
+                    </div>
+                    <div class="control-item">
+                        <span>Ускорение</span>
+                        <span class="key">↓</span>
+                    </div>
+                    <div class="control-item">
+                        <span>Пауза</span>
+                        <span class="key">P</span>
+                    </div>
+                    <div class="control-item">
+                        <span>Старт</span>
+                        <span class="key">Пробел</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-over-overlay" id="game-over-overlay">
+        <div class="game-over-content">
+            <div class="game-over-title">Игра окончена!</div>
+            <div class="final-score" id="final-score">Счет: 0</div>
+            <button class="restart-btn" onclick="restartGame()">Играть снова</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+        const nextCanvas = document.getElementById('next-canvas');
+        const nextCtx = nextCanvas.getContext('2d');
+
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 30;
+
+        let board = [];
+        let currentPiece = null;
+        let nextPiece = null;
+        let score = 0;
+        let level = 1;
+        let lines = 0;
+        let gameRunning = false;
+        let gamePaused = false;
+        let dropTime = 1000;
+        let lastDrop = 0;
+
+        const PIECES = [
+            { shape: [[1,1,1,1]], color: '#00f0f0' }, // I
+            { shape: [[1,1],[1,1]], color: '#f0f000' }, // O
+            { shape: [[0,1,0],[1,1,1]], color: '#a000f0' }, // T
+            { shape: [[0,1,1],[1,1,0]], color: '#00f000' }, // S
+            { shape: [[1,1,0],[0,1,1]], color: '#f00000' }, // Z
+            { shape: [[1,0,0],[1,1,1]], color: '#f0a000' }, // L
+            { shape: [[0,0,1],[1,1,1]], color: '#0000f0' }  // J
+        ];
+
+        class Piece {
+            constructor(shape, color) {
+                this.shape = shape;
+                this.color = color;
+                this.x = Math.floor((COLS - shape[0].length) / 2);
+                this.y = 0;
+            }
+
+            rotate() {
+                const rotated = [];
+                const rows = this.shape.length;
+                const cols = this.shape[0].length;
+                
+                for (let i = 0; i < cols; i++) {
+                    rotated[i] = [];
+                    for (let j = rows - 1; j >= 0; j--) {
+                        rotated[i][rows - 1 - j] = this.shape[j][i];
+                    }
+                }
+                
+                return rotated;
+            }
+        }
+
+        function initBoard() {
+            board = [];
+            for (let y = 0; y < ROWS; y++) {
+                board[y] = [];
+                for (let x = 0; x < COLS; x++) {
+                    board[y][x] = 0;
+                }
+            }
+        }
+
+        function createPiece() {
+            const pieceData = PIECES[Math.floor(Math.random() * PIECES.length)];
+            return new Piece(
+                JSON.parse(JSON.stringify(pieceData.shape)),
+                pieceData.color
+            );
+        }
+
+        function drawBlock(ctx, x, y, color, size = BLOCK_SIZE) {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * size, y * size, size - 1, size - 1);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(x * size, y * size, size - 1, 2);
+            ctx.fillRect(x * size, y * size, 2, size - 1);
+            
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.fillRect(x * size + size - 3, y * size, 2, size - 1);
+            ctx.fillRect(x * size, y * size + size - 3, size - 1, 2);
+        }
+
+        function drawBoard() {
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (board[y][x]) {
+                        drawBlock(ctx, x, y, board[y][x]);
+                    }
+                }
+            }
+            
+            if (currentPiece) {
+                for (let y = 0; y < currentPiece.shape.length; y++) {
+                    for (let x = 0; x < currentPiece.shape[y].length; x++) {
+                        if (currentPiece.shape[y][x]) {
+                            drawBlock(ctx, currentPiece.x + x, currentPiece.y + y, currentPiece.color);
+                        }
+                    }
+                }
+            }
+        }
+
+        function drawNext() {
+            nextCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+            nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+            
+            if (nextPiece) {
+                const blockSize = 20;
+                const offsetX = (nextCanvas.width - nextPiece.shape[0].length * blockSize) / 2;
+                const offsetY = (nextCanvas.height - nextPiece.shape.length * blockSize) / 2;
+                
+                for (let y = 0; y < nextPiece.shape.length; y++) {
+                    for (let x = 0; x < nextPiece.shape[y].length; x++) {
+                        if (nextPiece.shape[y][x]) {
+                            nextCtx.fillStyle = nextPiece.color;
+                            nextCtx.fillRect(
+                                offsetX + x * blockSize,
+                                offsetY + y * blockSize,
+                                blockSize - 1,
+                                blockSize - 1
+                            );
+                        }
+                    }
+                }
+            }
+        }
+
+        function isValidMove(piece, dx, dy, newShape = null) {
+            const shape = newShape || piece.shape;
+            const newX = piece.x + dx;
+            const newY = piece.y + dy;
+            
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        const boardX = newX + x;
+                        const boardY = newY + y;
+                        
+                        if (boardX < 0 || boardX >= COLS || boardY >= ROWS) {
+                            return false;
+                        }
+                        
+                        if (boardY >= 0 && board[boardY][boardX]) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            return true;
+        }
+
+        function placePiece() {
+            for (let y = 0; y < currentPiece.shape.length; y++) {
+                for (let x = 0; x < currentPiece.shape[y].length; x++) {
+                    if (currentPiece.shape[y][x]) {
+                        const boardY = currentPiece.y + y;
+                        const boardX = currentPiece.x + x;
+                        if (boardY >= 0) {
+                            board[boardY][boardX] = currentPiece.color;
+                        }
+                    }
+                }
+            }
+        }
+
+        function clearLines() {
+            let linesCleared = 0;
+            
+            for (let y = ROWS - 1; y >= 0; y--) {
+                if (board[y].every(cell => cell !== 0)) {
+                    board.splice(y, 1);
+                    board.unshift(new Array(COLS).fill(0));
+                    linesCleared++;
+                    y++;
+                }
+            }
+            
+            if (linesCleared > 0) {
+                lines += linesCleared;
+                score += linesCleared * 100 * level;
+                
+                if (lines >= level * 10) {
+                    level++;
+                    dropTime = Math.max(100, 1000 - (level - 1) * 100);
+                }
+                
+                updateScore();
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('lines').textContent = lines;
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('final-score').textContent = `Счет: ${score}`;
+            document.getElementById('game-over-overlay').style.display = 'flex';
+        }
+
+        function restartGame() {
+            initBoard();
+            score = 0;
+            level = 1;
+            lines = 0;
+            dropTime = 1000;
+            updateScore();
+            
+            currentPiece = createPiece();
+            nextPiece = createPiece();
+            
+            gameRunning = true;
+            gamePaused = false;
+            
+            document.getElementById('game-over-overlay').style.display = 'none';
+            gameLoop();
+        }
+
+        function gameLoop(timestamp = 0) {
+            if (!gameRunning) return;
+            
+            if (!gamePaused) {
+                if (timestamp - lastDrop > dropTime) {
+                    if (isValidMove(currentPiece, 0, 1)) {
+                        currentPiece.y++;
+                    } else {
+                        placePiece();
+                        clearLines();
+                        
+                        currentPiece = nextPiece;
+                        nextPiece = createPiece();
+                        
+                        if (!isValidMove(currentPiece, 0, 0)) {
+                            gameOver();
+                            return;
+                        }
+                    }
+                    
+                    lastDrop = timestamp;
+                }
+                
+                drawBoard();
+                drawNext();
+            }
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning || gamePaused) {
+                if (e.key === ' ' && !gameRunning) {
+                    restartGame();
+                } else if (e.key === 'p' || e.key === 'P') {
+                    gamePaused = !gamePaused;
+                    document.querySelector('.pause-indicator').style.display = 
+                        gamePaused ? 'block' : 'none';
+                }
+                return;
+            }
+            
+            switch(e.key) {
+                case 'ArrowLeft':
+                    if (isValidMove(currentPiece, -1, 0)) {
+                        currentPiece.x--;
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (isValidMove(currentPiece, 1, 0)) {
+                        currentPiece.x++;
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (isValidMove(currentPiece, 0, 1)) {
+                        currentPiece.y++;
+                        score++;
+                        updateScore();
+                    }
+                    break;
+                case 'ArrowUp':
+                    const rotated = currentPiece.rotate();
+                    if (isValidMove(currentPiece, 0, 0, rotated)) {
+                        currentPiece.shape = rotated;
+                    }
+                    break;
+                case 'p':
+                case 'P':
+                    gamePaused = !gamePaused;
+                    document.querySelector('.pause-indicator').style.display = 
+                        gamePaused ? 'block' : 'none';
+                    break;
+            }
+            
+            e.preventDefault();
+        });
+
+        initBoard();
+        updateScore();
+        drawBoard();
+        drawNext();
+    </script>
+</body>
+</html>
