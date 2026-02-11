@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Тетрис</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --bg-secondary: #12121a;
+            --fg: #e8e8f0;
+            --muted: #6b6b80;
+            --accent: #00d4aa;
+            --accent-glow: rgba(0, 212, 170, 0.3);
+            --card: #1a1a25;
+            --border: #2a2a3a;
+            --grid-line: rgba(255, 255, 255, 0.03);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--fg);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(0, 212, 170, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(100, 50, 200, 0.06) 0%, transparent 50%),
+                linear-gradient(180deg, var(--bg) 0%, #0d0d15 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .game-container {
+                flex-direction: row;
+                gap: 40px;
+            }
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        @media (min-width: 900px) {
+            .header {
+                display: none;
+            }
+        }
+
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(28px, 6vw, 42px);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            background: linear-gradient(135deg, var(--fg) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .main-wrapper {
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 30px;
+            }
+        }
+
+        .side-panel {
+            display: flex;
+            gap: 15px;
+            order: 2;
+        }
+
+        @media (min-width: 900px) {
+            .side-panel {
+                flex-direction: column;
+                order: 0;
+                gap: 20px;
+            }
+        }
+
+        .game-board-wrapper {
+            position: relative;
+            order: 1;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 
+                0 0 60px rgba(0, 212, 170, 0.1),
+                inset 0 0 30px rgba(0, 0, 0, 0.5);
+            width: min(85vw, 300px);
+            aspect-ratio: 10 / 20;
+        }
+
+        .cell {
+            background: var(--bg-secondary);
+            position: relative;
+            transition: background 0.05s ease;
+        }
+
+        .cell.filled {
+            position: relative;
+        }
+
+        .cell.filled::after {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border-radius: 2px;
+            background: inherit;
+            box-shadow: 
+                inset 2px 2px 4px rgba(255, 255, 255, 0.2),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .cell.ghost {
+            opacity: 0.3;
+        }
+
+        .cell.clearing {
+            animation: clearLine 0.3s ease-out forwards;
+        }
+
+        @keyframes clearLine {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        .panel-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 120px;
+        }
+
+        @media (min-width: 900px) {
+            .panel-card {
+                min-width: 160px;
+                padding: 20px 24px;
+            }
+        }
+
+        .panel-label {
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .panel-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        @media (min-width: 900px) {
+            .panel-value {
+                font-size: 32px;
+            }
+        }
+
+        .next-piece {
+            display: grid;
+            grid-template-columns: repeat(4, 20px);
+            grid-template-rows: repeat(4, 20px);
+            gap: 2px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        @media (min-width: 900px) {
+            .next-piece {
+                grid-template-columns: repeat(4, 25px);
+                grid-template-columns: repeat(4, 25px);
+            }
+        }
+
+        .next-cell {
+            background: transparent;
+            border-radius: 2px;
+        }
+
+        .next-cell.filled::after {
+            content: '';
+            position: absolute;
+            inset: 1px;
+            border-radius: 2px;
+            background: inherit;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            order: 3;
+        }
+
+        .controls-hint {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+        }
+
+        .controls-hint h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .control-key {
+            font-family: 'Orbitron', monospace;
+            font-size: 10px;
+            background: var(--bg);
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            color: var(--fg);
+        }
+
+        .mobile-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            order: 4;
+        }
+
+        @media (min-width: 900px) {
+            .mobile-controls {
+                display: none;
+            }
+        }
+
+        .control-btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            color: var(--fg);
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        .control-btn:active {
+            background: var(--accent);
+            color: var(--bg);
+            transform: scale(0.95);
+        }
+
+        .control-btn.wide {
+            grid-column: span 3;
+            padding: 14px;
+            font-size: 14px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+        }
+
+        .control-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 15, 0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .overlay h2 {
+            font-family: 'Orbitron', monospace;
+            font-size: 28px;
+            font-weight: 900;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .overlay p {
+            color: var(--muted);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .overlay-btn {
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            padding: 14px 28px;
+            background: var(--accent);
+            color: var(--bg);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .overlay-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--accent-glow);
+        }
+
+        .final-score {
+            font-family: 'Orbitron', monospace;
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--fg);
+            margin: 10px 0 20px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>TETRIS</h1>
+        </div>
+
+        <div class="main-wrapper">
+            <div class="side-panel">
+                <div class="panel-card">
+                    <div class="panel-label">Счёт</div>
+                    <div class="panel-value" id="score">0</div>
+                </div>
+                <div class="panel-card">
+                    <div class="panel-label">Уровень</div>
+                    <div class="panel-value" id="level">1</div>
+                </div>
+            </div>
+
+            <div class="game-board-wrapper">
+                <div class="game-board" id="board"></div>
+                <div class="overlay" id="startOverlay">
+                    <h2>ТЕТРИС</h2>
+                    <p>Классическая игра</p>
+                    <button class="overlay-btn" id="startBtn">НАЧАТЬ ИГРУ</button>
+                </div>
+                <div class="overlay" id="pauseOverlay">
+                    <h2>ПАУЗА</h2>
+                    <button class="overlay-btn" id="resumeBtn">ПРОДОЛЖИТЬ</button>
+                </div>
+                <div class="overlay" id="gameOverOverlay">
+                    <h2>ИГРА ОКОНЧЕНА</h2>
+                    <div class="final-score" id="finalScore">0</div>
+                    <button class="overlay-btn" id="restartBtn">ИГРАТЬ СНОВА</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="panel-card">
+                    <div class="panel-label">Следующая</div>
+                    <div class="next-piece" id="nextPiece"></div>
+                </div>
+
+                <div class="controls-hint">
+                    <h3>Управление</h3>
+                    <div class="control-row">
+                        <span>Влево</span>
+                        <span class="control-key">←</span>
+                    </div>
+                    <div class="control-row">
+                        <span>Вправо</span>
+                        <span class="control-key">→</span>
+                    </div>
+                    <div class="control-row">
+                        <span>Поворот</span>
+                        <span class="control-key">↑</span>
+                    </div>
+                    <div class="control-row">
+                        <span>Сброс</span>
+                        <span class="control-key">SPACE</span>
+                    </div>
+                    <div class="control-row">
+                        <span>Пауза</span>
+                        <span class="control-key">P</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mobile-controls">
+            <button class="control-btn" id="btnLeft">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="btnRotate">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6M1 20v-6h6"/>
+                    <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="btnRight">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="btnDown">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="btnDrop">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 5v14M5 12l7 7 7-7"/>
+                </svg>
+            </button>
+            <button class="control-btn" id="btnPause">PAUSE</button>
+        </div>
+    </div>
+
+    <script>
+        const COLS = 10;
+        const ROWS = 20;
+        const EMPTY = '#12121a';
+
+        const PIECES = {
+            I: {
+                shape: [[1,1,1,1]],
+                color: '#00d4aa'
+            },
+            O: {
+                shape: [[1,1],[1,1]],
+                color: '#ffd93d'
+            },
+            T: {
+                shape: [[0,1,0],[1,1,1]],
+                color: '#c77dff'
+            },
+            S: {
+                shape: [[0,1,1],[1,1,0]],
+                color: '#70e000'
+            },
+            Z: {
+                shape: [[1,1,0],[0,1,1]],
+                color: '#ff6b6b'
+            },
+            J: {
+                shape: [[1,0,0],[1,1,1]],
+                color: '#4cc9f0'
+            },
+            L: {
+                shape: [[0,0,1],[1,1,1]],
+                color: '#ff9f1c'
+            }
+        };
+
+        const PIECE_NAMES = Object.keys(PIECES);
+
+        let board = [];
+        let currentPiece = null;
+        let nextPiece = null;
+        let currentX = 0;
+        let currentY = 0;
+        let score = 0;
+        let level = 1;
+        let lines = 0;
+        let gameLoop = null;
+        let isPlaying = false;
+        let isPaused = false;
+        let dropInterval = 1000;
+
+        const boardEl = document.getElementById('board');
+        const nextPieceEl = document.getElementById('nextPiece');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const startOverlay = document.getElementById('startOverlay');
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        const gameOverOverlay = document.getElementById('gameOverOverlay');
+        const finalScoreEl = document.getElementById('finalScore');
+
+        function initBoard() {
+            board = Array(ROWS).fill(null).map(() => Array(COLS).fill(EMPTY));
+            boardEl.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function initNextPieceDisplay() {
+            nextPieceEl.innerHTML = '';
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'next-cell';
+                    cell.dataset.row = r;
+                    cell.dataset.col = c;
+                    nextPieceEl.appendChild(cell);
+                }
+            }
+        }
+
+        function getRandomPiece() {
+            const name = PIECE_NAMES[Math.floor(Math.random() * PIECE_NAMES.length)];
+            return {
+                name: name,
+                shape: PIECES[name].shape.map(row => [...row]),
+                color: PIECES[name].color
+            };
+        }
+
+        function drawBoard() {
+            const cells = boardEl.querySelectorAll('.cell');
+            cells.forEach(cell => {
+                const r = parseInt(cell.dataset.row);
+                const c = parseInt(cell.dataset.col);
+                cell.style.background = board[r][c];
+                cell.classList.remove('filled', 'ghost');
+                if (board[r][c] !== EMPTY) {
+                    cell.classList.add('filled');
+                }
+            });
+
+            if (currentPiece) {
+                const ghostY = getGhostY();
+                drawPiece(currentPiece, currentX, ghostY, true);
+                drawPiece(currentPiece, currentX, currentY, false);
+            }
+        }
+
+        function drawPiece(piece, x, y, isGhost) {
+            const cells = boardEl.querySelectorAll('.cell');
+            piece.shape.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val) {
+                        const boardR = y + r;
+                        const boardC = x + c;
+                        if (boardR >= 0 && boardR < ROWS && boardC >= 0 && boardC < COLS) {
+                            const cell = cells[boardR * COLS + boardC];
+                            if (isGhost) {
+                                cell.style.background = piece.color;
+                                cell.classList.add('ghost');
+                            } else {
+                                cell.style.background = piece.color;
+                                cell.classList.add('filled');
+                                cell.classList.remove('ghost');
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        function drawNextPiece() {
+            const cells = nextPieceEl.querySelectorAll('.next-cell');
+            cells.forEach(cell => {
+                cell.style.background = 'transparent';
+                cell.classList.remove('filled');
+            });
+
+            if (!nextPiece) return;
+
+            const offsetX = Math.floor((4 - nextPiece.shape[0].length) / 2);
+            const offsetY = Math.floor((4 - nextPiece.shape.length) / 2);
+
+            nextPiece.shape.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val) {
+                        const cell = cells[(r + offsetY) * 4 + (c + offsetX)];
+                        if (cell) {
+                            cell.style.background = nextPiece.color;
+                            cell.classList.add('filled');
+                        }
+                    }
+                });
+            });
+        }
+
+        function isValidMove(piece, x, y) {
+            return piece.shape.every((row, r) => {
+                return row.every((val, c) => {
+                    if (!val) return true;
+                    const boardR = y + r;
+                    const boardC = x + c;
+                    return (
+                        boardC >= 0 &&
+                        boardC < COLS &&
+                        boardR < ROWS &&
+                        (boardR < 0 || board[boardR][boardC] === EMPTY)
+                    );
+                });
+            });
+        }
+
+        function getGhostY() {
+            let ghostY = currentY;
+            while (isValidMove(currentPiece, currentX, ghostY + 1)) {
+                ghostY++;
+            }
+            return ghostY;
+        }
+
+        function rotatePiece() {
+            const rotated = currentPiece.shape[0].map((_, i) =>
+                currentPiece.shape.map(row => row[i]).reverse()
+            );
+            const original = currentPiece.shape;
+            currentPiece.shape = rotated;
+
+            if (!isValidMove(currentPiece, currentX, currentY)) {
+                if (isValidMove(currentPiece, currentX - 1, currentY)) {
+                    currentX--;
+                } else if (isValidMove(currentPiece, currentX + 1, currentY)) {
+                    currentX++;
+                } else if (isValidMove(currentPiece, currentX - 2, currentY)) {
+                    currentX -= 2;
+                } else if (isValidMove(currentPiece, currentX + 2, currentY)) {
+                    currentX += 2;
+                } else {
+                    currentPiece.shape = original;
+                }
+            }
+            drawBoard();
+        }
+
+        function movePiece(dx, dy) {
+            if (isValidMove(currentPiece, currentX + dx, currentY + dy)) {
+                currentX += dx;
+                currentY += dy;
+                drawBoard();
+                return true;
+            }
+            return false;
+        }
+
+        function dropPiece() {
+            while (movePiece(0, 1)) {}
+            lockPiece();
+        }
+
+        function lockPiece() {
+            currentPiece.shape.forEach((row, r) => {
+                row.forEach((val, c) => {
+                    if (val) {
+                        const boardR = currentY + r;
+                        const boardC = currentX + c;
+                        if (boardR >= 0) {
+                            board[boardR][boardC] = currentPiece.color;
+                        }
+                    }
+                });
+            });
+
+            clearLines();
+            spawnPiece();
+        }
+
+        function clearLines() {
+            let cleared = 0;
+            for (let r = ROWS - 1; r >= 0; r--) {
+                if (board[r].every(cell => cell !== EMPTY)) {
+                    board.splice(r, 1);
+                    board.unshift(Array(COLS).fill(EMPTY));
+                    cleared++;
+                    r++;
+                }
+            }
+
+            if (cleared > 0) {
+                const points = [0, 100, 300, 500, 800];
+                score += points[cleared] * level;
+                lines += cleared;
+                level = Math.floor(lines / 10) + 1;
+                dropInterval = Math.max(100, 1000 - (level - 1) * 100);
+                
+                scoreEl.textContent = score;
+                levelEl.textContent = level;
+            }
+        }
+
+        function spawnPiece() {
+            currentPiece = nextPiece || getRandomPiece();
+            nextPiece = getRandomPiece();
+            currentX = Math.floor((COLS - currentPiece.shape[0].length) / 2);
+            currentY = -1;
+
+            drawNextPiece();
+
+            if (!isValidMove(currentPiece, currentX, currentY + 1)) {
+                gameOver();
+            }
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            clearInterval(gameLoop);
+            finalScoreEl.textContent = score;
+            gameOverOverlay.classList.add('active');
+        }
+
+        function startGame() {
+            initBoard();
+            initNextPieceDisplay();
+            score = 0;
+            level = 1;
+            lines = 0;
+            dropInterval = 1000;
+            scoreEl.textContent = '0';
+            levelEl.textContent = '1';
+            
+            startOverlay.classList.remove('active');
+            pauseOverlay.classList.remove('active');
+            gameOverOverlay.classList.remove('active');
+            
+            nextPiece = getRandomPiece();
+            spawnPiece();
+            drawBoard();
+            
+            isPlaying = true;
+            isPaused = false;
+            
+            clearInterval(gameLoop);
+            gameLoop = setInterval(tick, dropInterval);
+        }
+
+        function togglePause() {
+            if (!isPlaying) return;
+            
+            isPaused = !isPaused;
+            if (isPaused) {
+                clearInterval(gameLoop);
+                pauseOverlay.classList.add('active');
+            } else {
+                pauseOverlay.classList.remove('active');
+                gameLoop = setInterval(tick, dropInterval);
+            }
+        }
+
+        function tick() {
+            if (!movePiece(0, 1)) {
+                lockPiece();
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!isPlaying || isPaused) {
+                if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') {
+                    if (isPlaying) togglePause();
+                }
+                return;
+            }
+
+            switch (e.key) {
+                case 'ArrowLeft':
+                    movePiece(-1, 0);
+                    break;
+                case 'ArrowRight':
+                    movePiece(1, 0);
+                    break;
+                case 'ArrowDown':
+                    movePiece(0, 1);
+                    break;
+                case 'ArrowUp':
+                    rotatePiece();
+                    break;
+                case ' ':
+                    e.preventDefault();
+                    dropPiece();
+                    break;
+                case 'p':
+                case 'P':
+                case 'Escape':
+                    togglePause();
+                    break;
+            }
+        });
+
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('resumeBtn').addEventListener('click', togglePause);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
+
+        document.getElementById('btnLeft').addEventListener('click', () => {
+            if (isPlaying && !isPaused) movePiece(-1, 0);
+        });
+        document.getElementById('btnRight').addEventListener('click', () => {
+            if (isPlaying && !isPaused) movePiece(1, 0);
+        });
+        document.getElementById('btnDown').addEventListener('click', () => {
+            if (isPlaying && !isPaused) movePiece(0, 1);
+        });
+        document.getElementById('btnRotate').addEventListener('click', () => {
+            if (isPlaying && !isPaused) rotatePiece();
+        });
+        document.getElementById('btnDrop').addEventListener('click', () => {
+            if (isPlaying && !isPaused) dropPiece();
+        });
+        document.getElementById('btnPause').addEventListener('click', () => {
+            if (isPlaying) togglePause();
+        });
+
+        startOverlay.classList.add('active');
+        initBoard();
+        initNextPieceDisplay();
+    </script>
+</body>
+</html>
