@@ -1,0 +1,19 @@
+{
+  "model": "GPT-5.5",
+  "task": "Создание современной адаптивной HTML/CSS/JavaScript игры Тетрис",
+  "created_at": "2026-05-19",
+  "time_spent_seconds": 1080,
+  "time_spent_minutes": 18,
+  "tokens": {
+    "input_estimate": 5200,
+    "output_estimate": 23800,
+    "total_estimate": 29000,
+    "type": "estimate"
+  },
+  "money": {
+    "amount": null,
+    "currency": "USD",
+    "type": "not_available_in_local_runtime",
+    "note": "Точная стоимость недоступна без биллинговой телеметрии API."
+  }
+}
