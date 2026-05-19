@@ -30,6 +30,10 @@ jobs:
           # Copy static files from results to deploy directory
           cp -r results/* deploy/
 
+          # Publish the Tetris app under /tetris/
+          mkdir -p deploy/tetris
+          cp -r tetris/* deploy/tetris/
+
           # Create .nojekyll file to prevent Jekyll processing
           touch deploy/.nojekyll
 
