@@ -34,6 +34,10 @@ jobs:
           mkdir -p deploy/tetris
           cp -r tetris/* deploy/tetris/
 
+          # Publish UI kits under /uikit/
+          mkdir -p deploy/uikit
+          cp -r uikit/* deploy/uikit/
+
           # Create .nojekyll file to prevent Jekyll processing
           touch deploy/.nojekyll
 
