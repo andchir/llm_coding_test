@@ -20,32 +20,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Prepare deployment files
         run: |
-          # Create deployment directory
           mkdir -p deploy
 
-          # Copy static files from results to deploy directory
-          cp -r results/* deploy/
+          # Generate the Pages landing page from all results*/index.html files.
+          python3 generate_summary.py --overview-only
+          cp results.html deploy/index.html
+          cp results.html deploy/results.html
 
-          # Publish the Tetris app under /tetris/
+          # Keep result directories intact so generated links stay valid.
+          for result_dir in results*/; do
+            if [ -d "$result_dir" ]; then
+              cp -r "$result_dir" deploy/
+            fi
+          done
+
           mkdir -p deploy/tetris
           cp -r tetris/* deploy/tetris/
 
-          # Publish UI kits under /uikit/
           mkdir -p deploy/uikit
           cp -r uikit/* deploy/uikit/
 
-          # Create .nojekyll file to prevent Jekyll processing
           touch deploy/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: deploy
 

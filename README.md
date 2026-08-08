@@ -48,6 +48,13 @@ Generate `index.html` next to the JSON file using `summary_template.html`:
 python3 generate_summary.py output/token_usage.json
 ```
 
+The same command also rebuilds the root `results.html` page with links to every
+`index.html` found in root-level directories whose names start with `results`.
+To rebuild only this root overview:
+```bash
+python3 generate_summary.py --overview-only
+```
+
 Use another template if needed:
 ```bash
 python3 generate_summary.py output/token_usage.json --template custom_template.html
