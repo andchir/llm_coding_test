@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Dino Jump</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(180deg,#0f0c29,#302b63,#24243e);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
+.game-wrapper{width:100%;max-width:800px;padding:12px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.hud{width:100%;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:rgba(255,255,255,0.08);border-radius:16px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,0.12)}
+.hud-item{display:flex;align-items:center;gap:8px;color:#fff;font-size:1.1rem;font-weight:600}
+.lives{display:flex;gap:6px}
+.life{width:28px;height:28px;transition:transform .3s,opacity .3s}
+.life.lost{opacity:.25;transform:scale(.7)}
+.life svg{width:100%;height:100%}
+.score-val{color:#ffe66d;font-variant-numeric:tabular-nums;min-width:60px}
+.hi-score{color:#7fdbca;font-size:.9rem}
+canvas{width:100%;height:auto;border-radius:16px;background:linear-gradient(180deg,#87CEEB 0%,#87CEEB 55%,#c2b280 55%,#c2b280 100%);box-shadow:0 20px 60px rgba(0,0,0,.4);border:3px solid rgba(255,255,255,.15);display:block;cursor:pointer}
+.controls{display:flex;gap:12px;width:100%;justify-content:center;flex-wrap:wrap}
+button{border:none;outline:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:1rem;padding:14px 32px;border-radius:50px;color:#fff;transition:background .3s,transform .2s,box-shadow .3s;position:relative;overflow:hidden}
+button:active{transform:scale(.95)}
+.btn-jump{background:linear-gradient(135deg,#11998e,#38ef7d);box-shadow:0 6px 20px rgba(56,239,125,.4);flex:1;max-width:200px}
+.btn-jump:hover{background:linear-gradient(135deg,#38ef7d,#11998e);box-shadow:0 8px 28px rgba(56,239,125,.6)}
+.btn-start{background:linear-gradient(135deg,#667eea,#764ba2);box-shadow:0 6px 20px rgba(102,126,234,.4)}
+.btn-start:hover{background:linear-gradient(135deg,#764ba2,#667eea);box-shadow:0 8px 28px rgba(102,126,234,.6)}
+.btn-restart{background:linear-gradient(135deg,#f093fb,#f5576c);box-shadow:0 6px 20px rgba(245,87,108,.4)}
+.btn-restart:hover{background:linear-gradient(135deg,#f5576c,#f093fb);box-shadow:0 8px 28px rgba(245,87,108,.6)}
+.overlay{position:fixed;inset:0;background:rgba(15,12,41,.85);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(8px);animation:fadeIn .4s ease}
+.overlay.hidden{display:none}
+.modal{background:linear-gradient(145deg,#1a1a2e,#16213e);padding:40px 36px;border-radius:24px;text-align:center;color:#fff;max-width:360px;width:90%;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 80px rgba(0,0,0,.5);animation:popIn .5s cubic-bezier(.175,.885,.32,1.275)}
+.modal h1{font-size:2rem;margin-bottom:8px;background:linear-gradient(135deg,#ffe66d,#f5576c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.modal p{color:rgba(255,255,255,.7);margin-bottom:24px;line-height:1.5;font-size:1.05rem}
+.modal .final-score{font-size:1.4rem;color:#ffe66d;margin-bottom:8px;font-weight:700}
+.dino-icon{width:80px;height:80px;margin:0 auto 16px;animation:bounce 1s ease infinite}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+.hint{color:rgba(255,255,255,.5);font-size:.85rem;margin-top:8px;animation:pulse 2s ease infinite}
+@media(max-width:500px){
+.hud{padding:8px 12px;font-size:.95rem}
+.life{width:24px;height:24px}
+button{padding:12px 24px;font-size:.95rem}
+.modal{padding:28px 24px}
+.modal h1{font-size:1.6rem}
+}
+</style>
+</head>
+<body>
+<div class="game-wrapper">
+<div class="hud">
+<div class="hud-item">
+<span>❤️</span>
+<div class="lives" id="lives">
+<div class="life" id="life0"><svg viewBox="0 0 24 24" fill="#ff4757"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+<div class="life" id="life1"><svg viewBox="0 0 24 24" fill="#ff4757"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+<div class="life" id="life2"><svg viewBox="0 0 24 24" fill="#ff4757"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+</div>
+</div>
+<div class="hud-item">⭐ <span class="score-val" id="score">0</span></div>
+<div class="hud-item hi-score">🏆 <span id="hiscore">0</span></div>
+</div>
+<canvas id="game" width="800" height="400"></canvas>
+<div class="controls">
+<button class="btn-jump" id="btnJump">⬆ ПРЫЖОК</button>
+</div>
+<p class="hint">Пробел / Тап / Кнопка — прыжок</p>
+</div>
+
+<div class="overlay" id="startScreen">
+<div class="modal">
+<div class="dino-icon">
+<svg viewBox="0 0 80 80" fill="none">
+<rect x="16" y="28" width="40" height="28" rx="4" fill="#535353"/>
+<rect x="48" y="16" width="24" height="20" rx="3" fill="#535353"/>
+<rect x="56" y="20" width="6" height="6" rx="1" fill="#87CEEB"/>
+<rect x="16" y="52" width="10" height="16" rx="2" fill="#535353"/>
+<rect x="36" y="52" width="10" height="16" rx="2" fill="#535353"/>
+<rect x="10" y="32" width="10" height="8" rx="2" fill="#535353"/>
+<rect x="22" y="20" width="8" height="12" rx="1" fill="#535353"/>
+<rect x="32" y="14" width="6" height="16" rx="1" fill="#535353"/>
+</svg>
+</div>
+<h1>DINO JUMP</h1>
+<p>Перепрыгивай кактусы!<br>У тебя 3 жизни. Не врезайся!</p>
+<button class="btn-start" id="btnStart">▶ ИГРАТЬ</button>
+</div>
+</div>
+
+<div class="overlay hidden" id="gameOverScreen">
+<div class="modal">
+<h1>ИГРА ОКОНЧЕНА</h1>
+<div class="final-score">Счёт: <span id="finalScore">0</span></div>
+<p id="newRecord" style="display:none;color:#ffe66d">🎉 Новый рекорд!</p>
+<button class="btn-restart" id="btnRestart">🔄 ЗАНОВО</button>
+</div>
+</div>
+
+<script>
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+const W=800,H=400;
+const GROUND=H*0.55;
+let lives=3,score=0,hiScore=parseInt(localStorage.getItem('dinoHi')||'0');
+let gameRunning=false,gameSpeed=6,frame=0,spawnTimer=0,spawnInterval=90;
+let particles=[];
+document.getElementById('hiscore').textContent=hiScore;
+
+const dino={
+x:80,y:GROUND,w:44,h:48,vy:0,jumping:false,duck:false,
+gravity:0.7,jumpForce:-14,groundY:GROUND
+};
+
+let cacti=[];
+const cactusTypes=[
+{w:20,h:40},
+{w:28,h:50},
+{w:36,h:46},
+{w:22,h:55},
+{w:48,h:42}
+];
+
+function resetGame(){
+lives=3;score=0;gameSpeed=6;frame=0;spawnTimer=0;spawnInterval=90;
+dino.y=GROUND;dino.vy=0;dino.jumping=false;
+cacti=[];particles=[];
+updateLives();
+document.getElementById('score').textContent='0';
+}
+
+function updateLives(){
+for(let i=0;i<3;i++){
+const el=document.getElementById('life'+i);
+if(i<lives)el.classList.remove('lost');
+else el.classList.add('lost');
+}
+}
+
+function jump(){
+if(!gameRunning)return;
+if(!dino.jumping){
+dino.vy=dino.jumpForce;
+dino.jumping=true;
+}
+}
+
+function spawnCactus(){
+const t=cactusTypes[Math.floor(Math.random()*cactusTypes.length)];
+const count=Math.random()>0.7&&gameSpeed>8?2:1;
+let x=W+20;
+for(let i=0;i<count;i++){
+const ct=cactusTypes[Math.floor(Math.random()*cactusTypes.length)];
+cacti.push({x:x,y:GROUND,w:ct.w,h:ct.h,passed:false});
+x+=ct.w+8;
+}
+}
+
+function createParticles(x,y,color){
+for(let i=0;i<8;i++){
+particles.push({
+x,y,
+vx:(Math.random()-0.5)*6,
+vy:(Math.random()-0.5)*6-2,
+life:30+Math.random()*20,
+maxLife:50,
+color,size:2+Math.random()*3
+});
+}
+}
+
+function drawCloud(x,y,s){
+ctx.fillStyle='rgba(255,255,255,0.7)';
+ctx.beginPath();
+ctx.arc(x,y,12*s,0,Math.PI*2);
+ctx.arc(x+16*s,y-6*s,14*s,0,Math.PI*2);
+ctx.arc(x+34*s,y,11*s,0,Math.PI*2);
+ctx.arc(x+16*s,y+4*s,10*s,0,Math.PI*2);
+ctx.fill();
+}
+
+function drawDino(){
+const x=dino.x,y=dino.y-dino.h;
+const legOff=dino.jumping?0:Math.floor(frame/5)%2;
+ctx.fillStyle='#535353';
+// body
+ctx.fillRect(x+4,y+12,30,28);
+// head
+ctx.fillRect(x+28,y,22,20);
+// eye
+ctx.fillStyle='#87CEEB';
+ctx.fillRect(x+40,y+5,5,5);
+ctx.fillStyle='#535353';
+// tail
+ctx.fillRect(x-6,y+16,12,8);
+// back spikes
+ctx.fillRect(x+10,y+4,6,10);
+ctx.fillRect(x+18,y+0,5,14);
+// mouth line
+ctx.fillStyle='#3a3a3a';
+ctx.fillRect(x+34,y+14,14,2);
+// legs
+ctx.fillStyle='#535353';
+if(legOff===0){
+ctx.fillRect(x+6,y+38,9,dino.jumping?10:14);
+ctx.fillRect(x+24,y+38,9,dino.jumping?10:10);
+}else{
+ctx.fillRect(x+6,y+38,9,dino.jumping?10:10);
+ctx.fillRect(x+24,y+38,9,dino.jumping?10:14);
+}
+// arms
+ctx.fillRect(x+20,y+22,8,4);
+}
+
+function drawCactus(c){
+const x=c.x,y=c.y-c.h;
+ctx.fillStyle='#2d8a4e';
+// main body
+ctx.fillRect(x+c.w*0.3,y,c.w*0.4,c.h);
+// left arm
+if(c.w>22){
+ctx.fillRect(x,y+c.h*0.25,c.w*0.35,c.w*0.25);
+ctx.fillRect(x,y+c.h*0.25,c.w*0.2,c.h*0.3);
+}
+// right arm
+if(c.w>25){
+ctx.fillRect(x+c.w*0.55,y+c.h*0.15,c.w*0.45,c.w*0.25);
+ctx.fillRect(x+c.w*0.75,y+c.h*0.15,c.w*0.2,c.h*0.35);
+}
+// highlights
+ctx.fillStyle='#3cb371';
+ctx.fillRect(x+c.w*0.35,y+2,c.w*0.12,c.h-4);
+// top
+ctx.fillStyle='#2d8a4e';
+ctx.beginPath();
+ctx.ellipse(x+c.w*0.5,y+2,c.w*0.2,4,0,0,Math.PI*2);
+ctx.fill();
+}
+
+function drawGround(){
+ctx.fillStyle='#c2b280';
+ctx.fillRect(0,GROUND,W,H-GROUND);
+// ground line
+ctx.strokeStyle='#8B7355';
+ctx.lineWidth=3;
+ctx.beginPath();
+ctx.moveTo(0,GROUND);
+ctx.lineTo(W,GROUND);
+ctx.stroke();
+// dirt details
+ctx.fillStyle='#b8a070';
+const offset=(frame*gameSpeed*0.5)%40;
+for(let i=-40;i<W+40;i+=40){
+ctx.fillRect(i-offset,GROUND+8,20,3);
+ctx.fillRect(i-offset+15,GROUND+18,12,2);
+ctx.fillRect(i-offset+5,GROUND+30,16,2);
+}
+// grass tufts
+ctx.fillStyle='#5a8f3c';
+for(let i=-20;i<W+20;i+=35){
+const gx=i-((frame*gameSpeed)%35);
+ctx.fillRect(gx,GROUND-6,3,6);
+ctx.fillRect(gx+5,GROUND-4,2,4);
+}
+}
+
+function drawSun(){
+ctx.fillStyle='#FFE066';
+ctx.beginPath();
+ctx.arc(W-80,60,30,0,Math.PI*2);
+ctx.fill();
+ctx.fillStyle='rgba(255,224,102,0.3)';
+ctx.beginPath();
+ctx.arc(W-80,60,45,0,Math.PI*2);
+ctx.fill();
+}
+
+function drawParticles(){
+particles.forEach(p=>{
+const alpha=p.life/p.maxLife;
+ctx.globalAlpha=alpha;
+ctx.fillStyle=p.color;
+ctx.fillRect(p.x,p.y,p.size,p.size);
+ctx.globalAlpha=1;
+});
+}
+
+function checkCollision(c){
+const dx=dino.x+8;
+const dy=dino.y-dino.h+8;
+const dw=dino.w-16;
+const dh=dino.h-12;
+const cx=c.x+4;
+const cy=c.y-c.h;
+const cw=c.w-8;
+const ch=c.h;
+return dx<cx+cw&&dx+dw>cx&&dy<cy+ch&&dy+dh>cy;
+}
+
+function update(){
+if(!gameRunning)return;
+frame++;
+// dino physics
+dino.vy+=dino.gravity;
+dino.y+=dino.vy;
+if(dino.y>=dino.groundY){
+dino.y=dino.groundY;
+dino.vy=0;
+dino.jumping=false;
+}
+// spawn
+spawnTimer++;
+if(spawnTimer>=spawnInterval){
+spawnCactus();
+spawnTimer=0;
+spawnInterval=Math.max(50,90-Math.floor(score/100)*5)+Math.random()*30;
+}
+// cacti
+for(let i=cacti.length-1;i>=0;i--){
+const c=cacti[i];
+c.x-=gameSpeed;
+if(!c.passed&&c.x+c.w<dino.x){
+c.passed=true;
+score+=10;
+document.getElementById('score').textContent=score;
+if(score%100===0)gameSpeed=Math.min(gameSpeed+0.5,16);
+}
+if(checkCollision(c)){
+lives--;
+updateLives();
+createParticles(dino.x+dino.w/2,dino.y-dino.h/2,'#ff4757');
+cacti.splice(i,1);
+if(lives<=0){
+endGame();
+return;
+}
+// brief invincibility - clear nearby
+cacti=cacti.filter(cc=>cc.x>dino.x+100||cc.x<dino.x-50);
+continue;
+}
+if(c.x+c.w<-10)cacti.splice(i,1);
+}
+// particles
+for(let i=particles.length-1;i>=0;i--){
+const p=particles[i];
+p.x+=p.vx;p.y+=p.vy;p.vy+=0.15;p.life--;
+if(p.life<=0)particles.splice(i,1);
+}
+}
+
+function draw(){
+ctx.clearRect(0,0,W,H);
+// sky already via css bg, but fill
+const grd=ctx.createLinearGradient(0,0,0,GROUND);
+grd.addColorStop(0,'#4a90d9');
+grd.addColorStop(0.7,'#87CEEB');
+grd.addColorStop(1,'#b8d4e8');
+ctx.fillStyle=grd;
+ctx.fillRect(0,0,W,GROUND);
+drawSun();
+// clouds
+drawCloud(150-((frame*0.3)%900),70,1);
+drawCloud(400-((frame*0.2)%900),45,0.8);
+drawCloud(650-((frame*0.25)%900),90,1.1);
+drawCloud(900-((frame*0.3)%900),60,0.9);
+drawGround();
+cacti.forEach(drawCactus);
+drawDino();
+drawParticles();
+// speed lines when fast
+if(gameSpeed>10){
+ctx.strokeStyle='rgba(255,255,255,0.15)';
+ctx.lineWidth=2;
+for(let i=0;i<5;i++){
+const ly=50+i*40+Math.sin(frame*0.1+i)*10;
+const lx=(frame*gameSpeed*2+i*160)%(W+100)-50;
+ctx.beginPath();
+ctx.moveTo(lx,ly);
+ctx.lineTo(lx+30+gameSpeed*2,ly);
+ctx.stroke();
+}
+}
+}
+
+function loop(){
+update();
+draw();
+requestAnimationFrame(loop);
+}
+
+function startGame(){
+document.getElementById('startScreen').classList.add('hidden');
+document.getElementById('gameOverScreen').classList.add('hidden');
+resetGame();
+gameRunning=true;
+}
+
+function endGame(){
+gameRunning=false;
+document.getElementById('finalScore').textContent=score;
+const nr=document.getElementById('newRecord');
+if(score>hiScore){
+hiScore=score;
+localStorage.setItem('dinoHi',hiScore);
+document.getElementById('hiscore').textContent=hiScore;
+nr.style.display='block';
+}else{
+nr.style.display='none';
+}
+document.getElementById('gameOverScreen').classList.remove('hidden');
+}
+
+document.getElementById('btnStart').addEventListener('click',startGame);
+document.getElementById('btnRestart').addEventListener('click',startGame);
+document.getElementById('btnJump').addEventListener('click',e=>{e.preventDefault();jump()});
+document.addEventListener('keydown',e=>{
+if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}
+});
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();jump()});
+// prevent scroll
+document.body.addEventListener('touchmove',e=>{if(gameRunning)e.preventDefault()},{passive:false});
+
+// initial draw
+draw();
+loop();
+</script>
+</body>
+</html>

@@ -44,7 +44,10 @@ def build_summary_html(data, template_text):
     """Render summary data with the supplied HTML template."""
     prompt = html.escape(str(data.get('prompt', '')))
     currency = html.escape(str(data.get('currency', 'RUB')))
-    results = data['results']
+    results = sorted(
+        data['results'],
+        key=lambda item: str(item.get('model', '')).casefold(),
+    )
     total_tokens = sum(
         item.get('output_tokens', 0)
         for item in results

@@ -1,0 +1,46 @@
+{
+  "prompt": "Игра платформер с динозавриком, который перепрыгивает кактусы. 3 жизни",
+  "currency": "RUB",
+  "results": [
+    {
+      "model": "deepseek/deepseek-v4-pro",
+      "output_tokens": 19071,
+      "price": 2.4655572
+    },
+    {
+      "model": "openai/gpt-5.6-luna",
+      "output_tokens": 4371,
+      "price": 0.2798145
+    },
+    {
+      "model": "moonshotai/kimi-k2.7-code",
+      "output_tokens": 11419,
+      "price": 4.1264966
+    },
+    {
+      "model": "minimax/minimax-m3",
+      "output_tokens": 12931,
+      "price": 1.6523324
+    },
+    {
+      "model": "x-ai/grok-4.5",
+      "output_tokens": 5902,
+      "price": 3.8124626
+    },
+    {
+      "model": "z-ai/glm-5.2",
+      "output_tokens": 12485,
+      "price": 5.8233936
+    },
+    {
+      "model": "openai/gpt-5.6-luna-pro",
+      "output_tokens": 11765,
+      "price": 0.8852786
+    },
+    {
+      "model": "openai/gpt-5.6-terra",
+      "output_tokens": 5859,
+      "price": 3.7429957
+    }
+  ]
+}

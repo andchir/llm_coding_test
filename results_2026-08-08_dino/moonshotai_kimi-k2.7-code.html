@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Динозаврик — платформер</title>
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg1: #0f0c29;
+    --bg2: #302b63;
+    --bg3: #24243e;
+    --accent: #00d2ff;
+    --danger: #ff4d4d;
+    --life: #ff2e63;
+    --text: #ffffff;
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2), var(--bg3));
+    background-size: 400% 400%;
+    animation: bgMove 12s ease infinite;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text);
+    overflow: hidden;
+    touch-action: none;
+    user-select: none;
+  }
+  @keyframes bgMove {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  header {
+    width: 100%;
+    max-width: 900px;
+    padding: 14px 20px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    background: linear-gradient(90deg, #ff9a9e, #fecfef, #a18cd1, #fbc2eb);
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradientText 4s ease infinite;
+    text-shadow: 0 0 18px rgba(255,255,255,0.15);
+  }
+  @keyframes gradientText {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .hud {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: clamp(0.95rem, 3vw, 1.15rem);
+    font-weight: 700;
+  }
+  .lives {
+    display: flex;
+    gap: 6px;
+  }
+  .heart {
+    width: 26px;
+    height: 26px;
+    fill: var(--life);
+    filter: drop-shadow(0 0 4px rgba(255,46,99,0.6));
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .heart.empty {
+    fill: #444;
+    filter: none;
+    animation: none;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  #gameContainer {
+    position: relative;
+    width: 100%;
+    max-width: 900px;
+    aspect-ratio: 2 / 1;
+    max-height: 62vh;
+    background: rgba(255,255,255,0.06);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    background: rgba(15,12,41,0.72);
+    backdrop-filter: blur(6px);
+    transition: opacity 0.3s ease;
+  }
+  .overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .overlay h2 {
+    margin: 0;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    text-shadow: 0 0 12px rgba(0,210,255,0.5);
+  }
+  .overlay p {
+    margin: 0;
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
+    opacity: 0.9;
+    text-align: center;
+    padding: 0 20px;
+  }
+  .btn {
+    padding: 14px 36px;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #fff;
+    cursor: pointer;
+    background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff6b6b);
+    background-size: 300% 300%;
+    animation: gradientBtn 3.5s ease infinite;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+    transition: transform 0.15s ease, filter 0.2s ease;
+  }
+  .btn:hover {
+    filter: brightness(1.15);
+    transform: translateY(-3px);
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+  @keyframes gradientBtn {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  .scoreboard {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .scorebox {
+    text-align: center;
+  }
+  .scorebox span {
+    display: block;
+    font-size: 0.85rem;
+    opacity: 0.75;
+  }
+  .scorebox strong {
+    font-size: 1.4rem;
+  }
+  @media (max-width: 520px) {
+    header { justify-content: center; }
+    #gameContainer { max-height: 55vh; border-radius: 14px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Динозаврик</h1>
+  <div class="hud">
+    <div class="scorebox">
+      <span>Счёт</span>
+      <strong id="score">0</strong>
+    </div>
+    <div class="scorebox">
+      <span>Рекорд</span>
+      <strong id="highScore">0</strong>
+    </div>
+    <div class="lives" id="lives"></div>
+  </div>
+</header>
+
+<div id="gameContainer">
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="startOverlay" class="overlay">
+    <h2>Готов к прыжкам?</h2>
+    <p>Пробел / стрелка вверх / касание — прыжок.<br>У тебя 3 жизни, уклоняйся от кактусов!</p>
+    <button class="btn" id="startBtn">Играть</button>
+  </div>
+
+  <div id="gameOverOverlay" class="overlay hidden">
+    <h2>Игра окончена</h2>
+    <div class="scoreboard">
+      <div class="scorebox"><span>Счёт</span><strong id="finalScore">0</strong></div>
+      <div class="scorebox"><span>Рекорд</span><strong id="finalHighScore">0</strong></div>
+    </div>
+    <button class="btn" id="restartBtn">Ещё раз</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const container = document.getElementById('gameContainer');
+  const startOverlay = document.getElementById('startOverlay');
+  const gameOverOverlay = document.getElementById('gameOverOverlay');
+  const scoreEl = document.getElementById('score');
+  const highScoreEl = document.getElementById('highScore');
+  const livesEl = document.getElementById('lives');
+  const finalScoreEl = document.getElementById('finalScore');
+  const finalHighScoreEl = document.getElementById('finalHighScore');
+
+  let width, height, groundY;
+  let dino, cacti, state, score, highScore, lives, speed, spawnTimer, invulnerable, rafId, lastTime;
+
+  function loadHighScore() {
+    try { highScore = parseInt(localStorage.getItem('dinoHighScore') || '0', 10) || 0; }
+    catch(e) { highScore = 0; }
+  }
+  function saveHighScore() {
+    try {
+      const current = Math.floor(score);
+      if (current > highScore) {
+        highScore = current;
+        localStorage.setItem('dinoHighScore', highScore);
+      }
+    } catch(e) {}
+  }
+
+  function resize() {
+    const rect = container.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    canvas.style.width = rect.width + 'px';
+    canvas.style.height = rect.height + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    width = rect.width;
+    height = rect.height;
+    groundY = height * 0.82;
+    if (dino) dino.y = groundY - dino.h;
+  }
+
+  function updateLivesUI() {
+    livesEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('class', 'heart');
+      if (i >= lives) svg.classList.add('empty');
+      svg.innerHTML = '<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>';
+      livesEl.appendChild(svg);
+    }
+  }
+
+  function resetGameVars() {
+    const dinoW = Math.min(60, width * 0.12);
+    const dinoH = dinoW * 1.1;
+    dino = {
+      x: width * 0.1,
+      y: groundY - dinoH,
+      w: dinoW,
+      h: dinoH,
+      vy: 0,
+      onGround: true,
+      color: '#2ecc71'
+    };
+    cacti = [];
+    state = 'ready';
+    score = 0;
+    lives = 3;
+    speed = 260;
+    spawnTimer = 1.1;
+    invulnerable = 0;
+    scoreEl.textContent = '0';
+    updateLivesUI();
+  }
+
+  function startGame() {
+    resetGameVars();
+    state = 'playing';
+    startOverlay.classList.add('hidden');
+    gameOverOverlay.classList.add('hidden');
+    lastTime = performance.now();
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function gameOver() {
+    state = 'gameover';
+    saveHighScore();
+    highScoreEl.textContent = highScore;
+    finalScoreEl.textContent = Math.floor(score);
+    finalHighScoreEl.textContent = highScore;
+    gameOverOverlay.classList.remove('hidden');
+  }
+
+  function jump() {
+    if (state !== 'playing') return;
+    if (dino.onGround) {
+      dino.vy = -Math.max(680, height * 1.45);
+      dino.onGround = false;
+    }
+  }
+
+  function getDinoHitbox() {
+    const pad = Math.min(dino.w, dino.h) * 0.12;
+    return { x: dino.x + pad, y: dino.y + pad, w: dino.w - pad * 2, h: dino.h - pad * 2 };
+  }
+
+  function rectsOverlap(a, b) {
+    return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+  }
+
+  function loseLife() {
+    lives--;
+    updateLivesUI();
+    if (lives <= 0) {
+      gameOver();
+      return;
+    }
+    invulnerable = 1.4;
+    const db = getDinoHitbox();
+    cacti = cacti.filter(c => {
+      const cb = { x: c.x + 5, y: c.y + 5, w: c.w - 10, h: c.h - 10 };
+      return !rectsOverlap(db, cb);
+    });
+  }
+
+  function spawnCactus() {
+    const count = Math.random() < 0.35 ? 2 : 1;
+    const baseW = 22 + Math.random() * 28;
+    const baseH = 48 + Math.random() * 52;
+    for (let i = 0; i < count; i++) {
+      cacti.push({
+        x: width + i * baseW * 1.25,
+        y: groundY - baseH,
+        w: baseW,
+        h: baseH
+      });
+    }
+  }
+
+  function update(dt) {
+    if (state !== 'playing') return;
+
+    const gravity = Math.max(1900, height * 3.2);
+    dino.vy += gravity * dt;
+    dino.y += dino.vy * dt;
+    if (dino.y + dino.h >= groundY) {
+      dino.y = groundY - dino.h;
+      dino.vy = 0;
+      dino.onGround = true;
+    }
+
+    spawnTimer -= dt;
+    if (spawnTimer <= 0) {
+      spawnCactus();
+      spawnTimer = 1.0 + Math.random() * 1.4;
+    }
+
+    for (let i = cacti.length - 1; i >= 0; i--) {
+      const c = cacti[i];
+      c.x -= speed * dt;
+      if (c.x + c.w < -20) {
+        cacti.splice(i, 1);
+        score += 12;
+      }
+    }
+
+    if (invulnerable > 0) {
+      invulnerable -= dt;
+    } else {
+      const db = getDinoHitbox();
+      for (const c of cacti) {
+        const cb = { x: c.x + 5, y: c.y + 5, w: c.w - 10, h: c.h - 10 };
+        if (rectsOverlap(db, cb)) {
+          loseLife();
+          break;
+        }
+      }
+    }
+
+    speed += 6 * dt;
+    score += dt * 12;
+    scoreEl.textContent = Math.floor(score);
+  }
+
+  function drawDino() {
+    ctx.save();
+    ctx.translate(dino.x, dino.y);
+    if (invulnerable > 0 && Math.floor(performance.now() / 90) % 2 === 0) {
+      ctx.globalAlpha = 0.45;
+    }
+    ctx.fillStyle = dino.color;
+
+    // тело
+    ctx.beginPath();
+    ctx.ellipse(dino.w * 0.42, dino.h * 0.45, dino.w * 0.36, dino.h * 0.34, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // голова
+    ctx.beginPath();
+    ctx.arc(dino.w * 0.72, dino.h * 0.24, dino.w * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+
+    // глаз
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(dino.w * 0.82, dino.h * 0.18, dino.w * 0.06, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(dino.w * 0.84, dino.h * 0.16, dino.w * 0.025, 0, Math.PI * 2);
+    ctx.fill();
+
+    // хвост
+    ctx.fillStyle = dino.color;
+    ctx.beginPath();
+    ctx.moveTo(dino.w * 0.12, dino.h * 0.42);
+    ctx.quadraticCurveTo(0, dino.h * 0.48, dino.w * 0.04, dino.h * 0.68);
+    ctx.lineTo(dino.w * 0.26, dino.h * 0.54);
+    ctx.closePath();
+    ctx.fill();
+
+    // ноги
+    const legSwing = dino.onGround ? Math.sin(performance.now() / 75) * 0.35 : 0;
+    drawLeg(dino.w * 0.24, dino.h * 0.74, legSwing);
+    drawLeg(dino.w * 0.56, dino.h * 0.74, -legSwing);
+
+    ctx.restore();
+  }
+
+  function drawLeg(x, y, angle) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.fillStyle = dino.color;
+    ctx.fillRect(-dino.w * 0.07, 0, dino.w * 0.14, dino.h * 0.36);
+    ctx.restore();
+  }
+
+  function drawCactus(c) {
+    ctx.save();
+    ctx.translate(c.x, c.y);
+    ctx.fillStyle = '#1e8449';
+
+    // ствол
+    roundRect(0, 0, c.w, c.h, c.w * 0.22);
+
+    // левая ветвь
+    ctx.strokeStyle = '#1e8449';
+    ctx.lineWidth = c.w * 0.26;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(c.w * 0.32, c.h * 0.34);
+    ctx.lineTo(-c.w * 0.22, c.h * 0.24);
+    ctx.lineTo(-c.w * 0.22, c.h * 0.06);
+    ctx.stroke();
+
+    // правая ветвь
+    ctx.beginPath();
+    ctx.moveTo(c.w * 0.68, c.h * 0.56);
+    ctx.lineTo(c.w + c.w * 0.22, c.h * 0.46);
+    ctx.lineTo(c.w + c.w * 0.22, c.h * 0.28);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function roundRect(x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function draw() {
+    // небо
+    const sky = ctx.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(0, '#1a1a2e');
+    sky.addColorStop(1, '#16213e');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    // луна/солнце
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    ctx.beginPath();
+    ctx.arc(width * 0.8, height * 0.18, Math.min(width, height) * 0.11, 0, Math.PI * 2);
+    ctx.fill();
+
+    // земля
+    const groundGrad = ctx.createLinearGradient(0, groundY, 0, height);
+    groundGrad.addColorStop(0, '#2d3436');
+    groundGrad.addColorStop(1, '#1e272e');
+    ctx.fillStyle = groundGrad;
+    ctx.fillRect(0, groundY, width, height - groundY);
+
+    // линия горизонта
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.lineTo(width, groundY);
+    ctx.stroke();
+
+    cacti.forEach(drawCactus);
+    drawDino();
+  }
+
+  function loop(now) {
+    if (state === 'playing') {
+      const dt = Math.min((now - lastTime) / 1000, 0.12);
+      lastTime = now;
+      update(dt);
+      draw();
+      rafId = requestAnimationFrame(loop);
+    } else {
+      draw();
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') {
+      e.preventDefault();
+      if (state === 'playing') jump();
+      else startGame();
+    }
+  });
+
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    if (state === 'playing') jump();
+  }, { passive: false });
+
+  canvas.addEventListener('mousedown', e => {
+    if (state === 'playing') jump();
+  });
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('restartBtn').addEventListener('click', startGame);
+
+  loadHighScore();
+  highScoreEl.textContent = highScore;
+  resize();
+  resetGameVars();
+  draw();
+  window.addEventListener('resize', resize);
+})();
+</script>
+</body>
+</html>

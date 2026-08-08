@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Динораннер</title>
+<style>
+:root{
+  --bg:#101827;
+  --panel:#18263a;
+  --accent:#61e294;
+  --accent2:#43b7ff;
+  --danger:#ff6b6b;
+  --text:#f4f8ff;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,Segoe UI,sans-serif;background:radial-gradient(circle at 50% 0,#263b59 0,#101827 55%,#080d16 100%);color:var(--text)}
+body{display:flex;justify-content:center;align-items:center;padding:18px;overflow-x:hidden}
+.app{width:min(960px,100%);display:flex;flex-direction:column;gap:14px}
+.header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,var(--accent),#24a8a1);display:grid;place-items:center;box-shadow:0 8px 25px #55e59a40;animation:float 3s ease-in-out infinite}
+.logo svg{width:31px;height:31px;fill:#092019}
+h1{font-size:clamp(20px,4vw,32px);margin:0;letter-spacing:-1px}
+.subtitle{opacity:.62;font-size:12px;margin-top:2px}
+.stats{display:flex;gap:9px}
+.stat{background:#ffffff0e;border:1px solid #ffffff16;border-radius:13px;padding:8px 12px;min-width:70px;text-align:center;backdrop-filter:blur(8px)}
+.stat span{display:block;font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:1px}
+.stat b{font-size:18px;color:var(--accent)}
+.game-shell{position:relative;overflow:hidden;border:1px solid #ffffff1d;border-radius:24px;background:#18283c;box-shadow:0 22px 70px #0008}
+canvas{display:block;width:100%;height:auto;aspect-ratio:16/7;min-height:230px;touch-action:none}
+.hud{position:absolute;top:14px;left:17px;right:17px;display:flex;justify-content:space-between;pointer-events:none;font-weight:800}
+.hud-box{background:#08111dcc;border:1px solid #ffffff22;border-radius:12px;padding:7px 11px;backdrop-filter:blur(7px)}
+.lives{display:flex;gap:5px}
+.heart{font-size:18px;transition:.25s;filter:drop-shadow(0 0 5px #ff6868)}
+.heart.off{filter:grayscale(1);opacity:.23}
+.overlay{position:absolute;inset:0;display:grid;place-items:center;background:#07101aa8;backdrop-filter:blur(5px);transition:.3s}
+.overlay.hidden{opacity:0;pointer-events:none}
+.card{text-align:center;padding:28px 25px;border:1px solid #ffffff24;border-radius:22px;background:#122237ec;box-shadow:0 15px 45px #0007;max-width:390px;margin:16px}
+.card h2{margin:0 0 9px;font-size:clamp(24px,6vw,40px)}
+.card p{margin:0 0 19px;opacity:.72;font-size:14px;line-height:1.5}
+button{border:0;color:#07120f;font-weight:800;font-size:15px;border-radius:13px;padding:12px 22px;background:var(--accent);cursor:pointer;transition:background .25s,transform .15s,box-shadow .25s;box-shadow:0 8px 20px #61e29433}
+button:hover{background:#9affba;box-shadow:0 10px 28px #61e29455;transform:translateY(-2px)}
+button:active{transform:scale(.96)}
+.controls{display:flex;justify-content:center;gap:12px}
+.control-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:180px;padding:14px;color:#fff;background:#ffffff12;border:1px solid #ffffff20;box-shadow:none}
+.control-btn:hover{color:#0c1c18;background:var(--accent)}
+.control-btn svg{width:20px;height:20px;fill:currentColor}
+.tip{text-align:center;opacity:.5;font-size:12px}
+@keyframes float{50%{transform:translateY(-4px) rotate(3deg)}}
+@media(max-width:560px){
+ body{padding:10px}
+ .header{align-items:flex-start}
+ .stats{gap:5px}
+ .stat{min-width:57px;padding:6px 7px}
+ .stat b{font-size:15px}
+ .stat span{font-size:8px}
+ .logo{width:41px;height:41px}
+ .subtitle{font-size:10px}
+ .game-shell{border-radius:18px}
+ canvas{aspect-ratio:1.45;min-height:240px}
+ .controls{gap:8px}
+ .control-btn{width:calc(50% - 4px);padding:13px 8px}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="header">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24"><path d="M4 17v-5.2c0-3.9 2.7-6.8 6.6-6.8h2.2c2.8 0 4.9 1.5 5.7 3.8l2.1.7-.8 2.1-2.1-.6c-.3 1.1-.9 2-1.7 2.7V17h-2v-2.5h-4V17H8v-2.5H6V17H4Zm5.2-8.2c.5 0 .9-.4.9-.9S9.7 7 9.2 7s-.9.4-.9.9.4.9.9.9Z"/></svg>
+      </div>
+      <div><h1>Динораннер</h1><div class="subtitle">Прыгай выше, беги дольше</div></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><span>Рекорд</span><b id="best">0</b></div>
+      <div class="stat"><span>Счёт</span><b id="scoreTop">0</b></div>
+    </div>
+  </header>
+
+  <section class="game-shell">
+    <canvas id="game" aria-label="Игра платформер"></canvas>
+    <div class="hud">
+      <div class="hud-box">СЧЁТ: <span id="score">0</span></div>
+      <div class="hud-box lives" aria-label="Жизни">
+        <span class="heart">♥</span><span class="heart">♥</span><span class="heart">♥</span>
+      </div>
+    </div>
+    <div class="overlay" id="overlay">
+      <div class="card">
+        <h2 id="title">Динораннер</h2>
+        <p id="message">Перепрыгивай кактусы и не теряй свои 3 жизни.<br>Пробел, стрелка вверх или кнопка «Прыжок».</p>
+        <button id="start">Начать игру</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <button class="control-btn" id="jump">
+      <svg viewBox="0 0 24 24"><path d="m12 4 8 8-1.4 1.4-5.6-5.6v12.1h-2V7.8l-5.6 5.6L4 12l8-8Z"/></svg>
+      Прыжок
+    </button>
+    <button class="control-btn" id="pause">
+      <svg viewBox="0 0 24 24"><path d="M7 5h3v14H7V5Zm7 0h3v14h-3V5Z"/></svg>
+      Пауза
+    </button>
+  </div>
+  <div class="tip">На телефоне можно нажать на игровое поле</div>
+</main>
+
+<script>
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const scoreEl=document.getElementById('score'),scoreTop=document.getElementById('scoreTop'),bestEl=document.getElementById('best');
+const overlay=document.getElementById('overlay'),title=document.getElementById('title'),message=document.getElementById('message'),startBtn=document.getElementById('start');
+const hearts=[...document.querySelectorAll('.heart')];
+let W=900,H=394,dpr=1,raf,last=0;
+let state='ready',score=0,best=+localStorage.getItem('dinoBest')||0,lives=3,speed=330,spawn=0,ground=0;
+let dino,obstacles=[],clouds=[],particles=[],invuln=0,shake=0;
+bestEl.textContent=best;
+
+function resize(){
+  const rect=canvas.getBoundingClientRect(); dpr=Math.min(devicePixelRatio||1,2);
+  W=900; H=Math.max(394,900*rect.height/rect.width);
+  canvas.width=W*dpr; canvas.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+  ground=H-55;
+}
+window.addEventListener('resize',resize); resize();
+
+function reset(){
+ score=0;lives=3;speed=330;spawn=.9;invuln=0;shake=0;obstacles=[];particles=[];
+ dino={x:105,y:ground-48,w:42,h:48,vy:0,onGround:true};
+ clouds=[{x:100,y:65,s:1},{x:410,y:105,s:.7},{x:720,y:53,s:.85}];
+ updateHud();
+}
+function updateHud(){
+ scoreEl.textContent=Math.floor(score);scoreTop.textContent=Math.floor(score);
+ hearts.forEach((h,i)=>h.classList.toggle('off',i>=lives));
+}
+function begin(){
+ reset();state='playing';overlay.classList.add('hidden');last=performance.now();raf=requestAnimationFrame(loop);
+}
+function end(){
+ state='over'; if(Math.floor(score)>best){best=Math.floor(score);localStorage.setItem('dinoBest',best);bestEl.textContent=best}
+ title.textContent='Игра окончена';message.innerHTML=`Твой результат: <b>${Math.floor(score)}</b><br>Кактусы были близко, но в следующий раз получится!`;
+ startBtn.textContent='Играть снова';overlay.classList.remove('hidden');
+}
+function jump(){
+ if(state==='ready'||state==='over'){begin();return}
+ if(state!=='playing')return;
+ if(dino.onGround){dino.vy=-735;dino.onGround=false;dust(dino.x+15,ground)}
+}
+function togglePause(){
+ if(state==='playing'){state='paused';title.textContent='Пауза';message.textContent='Нажми кнопку, чтобы продолжить бег.';startBtn.textContent='Продолжить';overlay.classList.remove('hidden')}
+ else if(state==='paused'){state='playing';overlay.classList.add('hidden');last=performance.now();raf=requestAnimationFrame(loop)}
+}
+function spawnCactus(){
+ const tall=38+Math.random()*43, wide=20+Math.random()*13;
+ obstacles.push({x:W+30,y:ground-tall,w:wide,h:tall,type:Math.random()>.65?'double':'single'});
+}
+function dust(x,y){for(let i=0;i<8;i++)particles.push({x,y,vx:-50+Math.random()*100,vy:-Math.random()*100,life:.45})}
+function hit(a,b){return a.x+8<b.x+b.w-3&&a.x+a.w-7>b.x+3&&a.y+7<b.y+b.h&&a.y+a.h>b.y+4}
+function loseLife(){
+ lives--;invuln=1.35;shake=.25;dust(dino.x+20,dino.y+25);updateHud();
+ if(lives<=0)end();
+}
+function update(dt){
+ score+=dt*10; speed=330+Math.min(290,score*2.1);spawn-=dt;
+ if(spawn<=0){spawnCactus();spawn=.78+Math.random()*.9-Math.min(.28,score/3500)}
+ dino.vy+=1900*dt;dino.y+=dino.vy*dt;
+ if(dino.y+dino.h>=ground){dino.y=ground-dino.h;dino.vy=0;dino.onGround=true}
+ obstacles.forEach(o=>o.x-=speed*dt);obstacles=obstacles.filter(o=>o.x+o.w>0);
+ if(invuln>0)invuln-=dt;
+ if(invuln<=0)for(const o of obstacles)if(hit(dino,o)){loseLife();o.x=-100;break}
+ clouds.forEach(c=>{c.x-=speed*.035*dt;if(c.x<-100)c.x=W+40});
+ particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=350*dt;p.life-=dt});particles=particles.filter(p=>p.life>0);
+ updateHud();
+}
+function draw(){
+ ctx.clearRect(0,0,W,H);
+ const grad=ctx.createLinearGradient(0,0,0,H);grad.addColorStop(0,'#173254');grad.addColorStop(1,'#091520');ctx.fillStyle=grad;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#ffffff12';clouds.forEach(c=>{ctx.beginPath();ctx.arc(c.x,c.y,18*c.s,0,7);ctx.arc(c.x+22*c.s,c.y-8*c.s,25*c.s,0,7);ctx.arc(c.x+51*c.s,c.y,17*c.s,0,7);ctx.fill()});
+ ctx.fillStyle='#1b463e';ctx.beginPath();ctx.moveTo(0,ground);ctx.lineTo(0,ground-65);ctx.lineTo(130,ground-110);ctx.lineTo(260,ground-55);ctx.lineTo(410,ground-125);ctx.lineTo(570,ground-56);ctx.lineTo(740,ground-105);ctx.lineTo(W,ground-50);ctx.lineTo(W,ground);ctx.fill();
+ ctx.fillStyle='#284b45';ctx.fillRect(0,ground,W,H-ground);
+ ctx.strokeStyle='#67c789';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,ground);ctx.lineTo(W,ground);ctx.stroke();
+ ctx.strokeStyle='#ffffff22';ctx.lineWidth=2;for(let x=0;x<W;x+=55){let xx=(x-(score*12)%55);ctx.beginPath();ctx.moveTo(xx,ground+18);ctx.lineTo(xx+22,ground+18);ctx.stroke()}
+ obstacles.forEach(drawCactus); drawDino();
+ particles.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life*2);ctx.fillStyle='#a8e6a8';ctx.fillRect(p.x,p.y,4,4)});ctx.globalAlpha=1;
+}
+function drawCactus(o){
+ ctx.fillStyle='#6ee08a';ctx.strokeStyle='#153b35';ctx.lineWidth=3;
+ ctx.beginPath();ctx.roundRect(o.x,o.y,o.w,o.h,6);ctx.fill();ctx.stroke();
+ if(o.type==='double'){ctx.beginPath();ctx.roundRect(o.x-11,o.y+20,11,8,4);ctx.roundRect(o.x+o.w,o.y+29,12,8,4);ctx.fill();ctx.stroke()}
+ ctx.fillStyle='#163f35';for(let y=o.y+10;y<ground-5;y+=14){ctx.fillRect(o.x+5,y,2,5)}
+}
+function drawDino(){
+ if(invuln>0&&Math.floor(invuln*12)%2===0)return;
+ const x=dino.x,y=dino.y;ctx.save();ctx.translate(x,y);ctx.fillStyle='#61e294';ctx.strokeStyle='#092b28';ctx.lineWidth=3;
+ ctx.beginPath();ctx.moveTo(8,24);ctx.lineTo(0,15);ctx.lineTo(5,13);ctx.lineTo(14,17);ctx.lineTo(17,5);ctx.quadraticCurveTo(19,0,25,0);ctx.lineTo(38,0);ctx.quadraticCurveTo(43,1,43,7);ctx.lineTo(43,27);ctx.lineTo(35,27);ctx.lineTo(35,46);ctx.lineTo(27,46);ctx.lineTo(25,30);ctx.lineTo(17,30);ctx.lineTo(15,46);ctx.lineTo(7,46);ctx.closePath();ctx.fill();ctx.stroke();
+ ctx.fillStyle='#092b28';ctx.beginPath();ctx.arc(34,8,2.5,0,7);ctx.fill();ctx.restore();
+}
+function loop(t){
+ if(state!=='playing')return;const dt=Math.min(.035,(t-last)/1000);last=t;update(dt);draw();raf=requestAnimationFrame(loop);
+}
+startBtn.addEventListener('click',()=>state==='paused'?togglePause():begin());
+document.getElementById('jump').addEventListener('pointerdown',e=>{e.preventDefault();jump()});
+document.getElementById('pause').addEventListener('click',togglePause);
+canvas.addEventListener('pointerdown',e=>{e.preventDefault();jump()});
+window.addEventListener('keydown',e=>{
+ if(['Space','ArrowUp','KeyW'].includes(e.code)){e.preventDefault();jump()}
+ if(e.code==='KeyP'||e.code==='Escape')togglePause();
+});
+reset();draw();
+</script>
+</body>
+</html>
