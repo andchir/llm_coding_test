@@ -66,6 +66,11 @@
       "model": "openai/gpt-5.6-sol",
       "output_tokens": 6233,
       "price": 20.6479641
+    },
+    {
+      "model": "anthropic/claude-opus-5",
+      "output_tokens": 3354,
+      "price": 9.0564031
     }
   ]
 }

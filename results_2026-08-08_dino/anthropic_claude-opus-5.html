@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Дино Раннер</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;background:linear-gradient(160deg,#1b2735,#090a0f);font-family:"Trebuchet MS",sans-serif;color:#e8f1f2;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;overflow:hidden}
+h1{font-size:clamp(20px,5vw,32px);letter-spacing:2px;margin-bottom:10px;background:linear-gradient(90deg,#4ade80,#38bdf8);-webkit-background-clip:text;background-clip:text;color:transparent;animation:glow 3s ease-in-out infinite}
+@keyframes glow{50%{filter:brightness(1.4)}}
+#wrap{position:relative;width:100%;max-width:900px;border-radius:16px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.1)}
+canvas{display:block;width:100%;background:linear-gradient(#0f1c2e,#20344a 70%,#2c4258)}
+#hud{position:absolute;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;font-size:clamp(13px,3vw,18px);pointer-events:none;text-shadow:0 2px 6px #000}
+.hearts svg{width:22px;height:22px;margin-right:3px;transition:.3s;filter:drop-shadow(0 0 4px #f43f5e)}
+.hearts svg.off{opacity:.2;transform:scale(.8);filter:none}
+#over{position:absolute;inset:0;background:rgba(6,10,18,.85);display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;animation:fade .4s}
+@keyframes fade{from{opacity:0}}
+#over.show{display:flex}
+#over h2{font-size:clamp(22px,6vw,38px);color:#f43f5e}
+button{cursor:pointer;border:none;border-radius:30px;padding:12px 30px;font-size:16px;font-weight:bold;background:#38bdf8;color:#062033;transition:background .3s,transform .2s,box-shadow .3s}
+button:hover{background:#4ade80;transform:translateY(-3px);box-shadow:0 8px 20px rgba(74,222,128,.4)}
+button:active{transform:scale(.95)}
+#tip{margin-top:12px;opacity:.6;font-size:13px;text-align:center}
+</style>
+</head>
+<body>
+<h1>DINO RUN</h1>
+<div id="wrap">
+<canvas id="c" width="900" height="320"></canvas>
+<div id="hud">
+<div class="hearts" id="hearts"></div>
+<div>Счёт: <span id="sc">0</span> &nbsp; Рекорд: <span id="hi">0</span></div>
+</div>
+<div id="over"><h2>Игра окончена</h2><div id="fin"></div><button id="rs">Играть снова</button></div>
+</div>
+<div id="tip">Пробел / ↑ / клик / тап — прыжок</div>
+<script>
+const c=document.getElementById('c'),x=c.getContext('2d');
+const W=900,H=320,GY=270;
+let dino,obs,clouds,sp,score,lives,over,inv,t,frame;
+const hiEl=document.getElementById('hi'),scEl=document.getElementById('sc'),heartsEl=document.getElementById('hearts');
+let hi=+(localStorage.getItem('dinoHi')||0);hiEl.textContent=hi;
+function heart(on){return '<svg viewBox="0 0 24 24" class="'+(on?'':'off')+'" fill="#f43f5e"><path d="M12 21s-8-4.9-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 16.1 12 21 12 21z"/></svg>'}
+function drawHearts(){heartsEl.innerHTML=[0,1,2].map(i=>heart(i<lives)).join('')}
+function init(){dino={y:GY,vy:0,j:false};obs=[];clouds=[];for(let i=0;i<5;i++)clouds.push({x:Math.random()*W,y:30+Math.random()*90,s:.3+Math.random()*.5,r:20+Math.random()*20});
+sp=6;score=0;lives=3;over=false;inv=0;t=0;frame=0;drawHearts();document.getElementById('over').classList.remove('show');}
+function jump(){if(!over&&!dino.j){dino.j=true;dino.vy=-15.5}}
+addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();jump()}});
+c.addEventListener('mousedown',jump);
+c.addEventListener('touchstart',e=>{e.preventDefault();jump()},{passive:false});
+document.getElementById('rs').onclick=init;
+function spawn(){const h=[30,42,55][Math.floor(Math.random()*3)];obs.push({x:W+20,w:14+Math.random()*16,h:h})}
+let next=60;
+function drawDino(){
+ const y=dino.y;x.save();x.translate(60,y);
+ if(inv>0&&Math.floor(frame/4)%2)x.globalAlpha=.35;
+ x.fillStyle='#4ade80';
+ x.fillRect(0,-42,26,30);// body head area
+ x.fillRect(-14,-24,30,24);
+ x.fillStyle='#22c55e';x.fillRect(-26,-22,14,8);// tail
+ x.fillStyle='#0b1220';x.fillRect(17,-36,5,5);// eye
+ x.fillStyle='#4ade80';x.fillRect(22,-26,8,5);// jaw
+ // legs animation
+ const a=dino.j?0:Math.sin(frame*.4)*8;
+ x.fillStyle='#22c55e';
+ x.fillRect(-8,0,8,10+0);x.fillRect(4,0,8,10);
+ if(!dino.j){x.clearRect(-8,10,8,0)}
+ x.fillRect(-8+a*0,0,8,10);
+ x.restore();
+}
+function loop(){
+ frame++;
+ x.clearRect(0,0,W,H);
+ // sky gradient bg already; stars
+ x.fillStyle='rgba(255,255,255,.5)';
+ // clouds
+ x.fillStyle='rgba(255,255,255,.12)';
+ clouds.forEach(cl=>{if(!over)cl.x-=cl.s;if(cl.x<-60){cl.x=W+40;cl.y=30+Math.random()*90}
+  x.beginPath();x.arc(cl.x,cl.y,cl.r,0,7);x.arc(cl.x+cl.r,cl.y+5,cl.r*.7,0,7);x.arc(cl.x-cl.r,cl.y+6,cl.r*.6,0,7);x.fill();});
+ // ground
+ x.fillStyle='#334d63';x.fillRect(0,GY+10,W,H);
+ x.strokeStyle='#5b7a96';x.lineWidth=3;x.beginPath();x.moveTo(0,GY+11);x.lineTo(W,GY+11);x.stroke();
+ if(!over){
+  t++;score+=.15;scEl.textContent=Math.floor(score);
+  sp=6+score/180;
+  if(--next<=0){spawn();next=Math.max(40,90-sp*3)+Math.random()*60}
+  dino.vy+=0.75;dino.y+=dino.vy;
+  if(dino.y>=GY){dino.y=GY;dino.vy=0;dino.j=false}
+  if(inv>0)inv--;
+ }
+ // obstacles
+ for(let i=obs.length-1;i>=0;i--){const o=obs[i];if(!over)o.x-=sp;
+  x.fillStyle='#16a34a';
+  x.fillRect(o.x,GY+10-o.h,o.w,o.h);
+  x.fillRect(o.x-7,GY+10-o.h*.75,7,6);x.fillRect(o.x-7,GY+10-o.h*.75,4,16);
+  x.fillRect(o.x+o.w,GY+10-o.h*.6,7,6);x.fillRect(o.x+o.w+3,GY+10-o.h*.6,4,14);
+  if(o.x+o.w<-20)obs.splice(i,1);
+  if(inv<=0&&!over&&o.x<60+26&&o.x+o.w>60-26&&dino.y>GY+8-o.h){
+   lives--;drawHearts();inv=70;
+   if(lives<=0){over=true;
+    if(score>hi){hi=Math.floor(score);localStorage.setItem('dinoHi',hi);hiEl.textContent=hi}
+    document.getElementById('fin').textContent='Счёт: '+Math.floor(score)+' | Рекорд: '+hi;
+    document.getElementById('over').classList.add('show');}
+  }
+ }
+ drawDino();
+ requestAnimationFrame(loop);
+}
+init();loop();
+</script>
+</body>
+</html>
