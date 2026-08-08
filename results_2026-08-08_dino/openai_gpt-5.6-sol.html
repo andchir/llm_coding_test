@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Прыжок динозаврика</title>
+<style>
+:root {
+  --bg: #f4f0e6;
+  --panel: rgba(255, 255, 255, .8);
+  --ink: #263238;
+  --accent: #ee6c4d;
+  --accent-dark: #c94d36;
+  --green: #4f8f64;
+  --line: rgba(38, 50, 56, .14);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 15% 10%, rgba(238, 108, 77, .12), transparent 25%),
+    radial-gradient(circle at 85% 90%, rgba(79, 143, 100, .14), transparent 28%),
+    var(--bg);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.game-shell {
+  width: min(100%, 980px);
+  min-height: 100svh;
+  padding: clamp(14px, 3vw, 34px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 14px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 900;
+  letter-spacing: .02em;
+}
+
+.brand-mark {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 7px 0 var(--accent-dark);
+  transform: rotate(-4deg);
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat {
+  min-width: 76px;
+  padding: 8px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--panel);
+  text-align: center;
+  box-shadow: 0 5px 16px rgba(38, 50, 56, .06);
+}
+
+.stat-label {
+  display: block;
+  color: rgba(38, 50, 56, .58);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.stat-value {
+  display: block;
+  margin-top: 2px;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.game-frame {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(38, 50, 56, .13);
+  border-radius: 18px;
+  background: #d9f0ed;
+  box-shadow: 0 18px 46px rgba(38, 50, 56, .15);
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: min(62svh, 560px);
+  min-height: 300px;
+  touch-action: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(217, 240, 237, .66);
+  backdrop-filter: blur(4px);
+  transition: opacity .25s ease, visibility .25s ease;
+}
+
+.overlay.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.overlay-card {
+  width: min(340px, 100%);
+  padding: 24px;
+  border: 1px solid rgba(38, 50, 56, .13);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .9);
+  text-align: center;
+  box-shadow: 0 14px 35px rgba(38, 50, 56, .14);
+  animation: rise .45s ease both;
+}
+
+.overlay-card h1 {
+  margin: 0 0 8px;
+  color: var(--ink);
+  font-size: clamp(26px, 6vw, 42px);
+  line-height: 1;
+}
+
+.overlay-card p {
+  margin: 0 0 18px;
+  color: rgba(38, 50, 56, .62);
+  font-size: 14px;
+}
+
+.action-button,
+.control-button {
+  border: 0;
+  color: #fff;
+  background: var(--accent);
+  cursor: pointer;
+  transition: background .2s ease, transform .2s ease, box-shadow .2s ease;
+}
+
+.action-button {
+  width: 100%;
+  padding: 13px 18px;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 900;
+  box-shadow: 0 5px 0 var(--accent-dark);
+}
+
+.action-button:hover,
+.action-button:focus-visible {
+  background: #f28461;
+}
+
+.action-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--accent-dark);
+}
+
+.bottom-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.life-list {
+  display: flex;
+  gap: 6px;
+}
+
+.life {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--accent);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  transition: opacity .25s ease, filter .25s ease, transform .25s ease;
+}
+
+.life.lost {
+  opacity: .25;
+  filter: grayscale(1);
+  transform: scale(.84);
+}
+
+.mobile-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.control-button {
+  width: 48px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  box-shadow: 0 4px 0 var(--accent-dark);
+}
+
+.control-button:hover,
+.control-button:focus-visible {
+  background: #f28461;
+}
+
+.control-button:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--accent-dark);
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 560px) {
+  .game-shell {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .brand {
+    font-size: 17px;
+  }
+
+  .brand-mark {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+  }
+
+  .stat {
+    min-width: 62px;
+    padding: 7px 8px;
+  }
+
+  .stat-value {
+    font-size: 16px;
+  }
+
+  canvas {
+    height: 58svh;
+    min-height: 310px;
+  }
+
+  .bottom-bar {
+    align-items: flex-end;
+  }
+}
+</style>
+</head>
+<body>
+<main class="game-shell">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 15.5c0-4.2 2.8-7.5 7-7.5h2.5c3.2 0 5.5 2.3 5.5 5.5v4H8.5A4.5 4.5 0 0 1 4 13z"/>
+          <path d="M13 8V5.5M16 9V6.5M7.5 18v2M14.5 18v2M17 12h.01"/>
+        </svg>
+      </span>
+      <span>Прыжок</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">Счёт</span>
+        <span class="stat-value" id="score">00000</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Рекорд</span>
+        <span class="stat-value" id="best">00000</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="game-frame">
+    <canvas id="game" aria-label="Игра с динозавриком"></canvas>
+    <div class="overlay" id="overlay">
+      <div class="overlay-card">
+        <h1 id="overlayTitle">Прыжок</h1>
+        <p id="overlayText">Перепрыгни все кактусы</p>
+        <button class="action-button" id="startButton">Начать игру</button>
+      </div>
+    </div>
+  </section>
+
+  <footer class="bottom-bar">
+    <div class="life-list" aria-label="Жизни">
+      <span class="life" id="life1">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 15.5c0-4.2 2.8-7.5 7-7.5h2.5c3.2 0 5.5 2.3 5.5 5.5v4H8.5A4.5 4.5 0 0 1 4 13z"/>
+          <path d="M13 8V5.5M16 9V6.5M7.5 18v2M14.5 18v2M17 12h.01"/>
+        </svg>
+      </span>
+      <span class="life" id="life2">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 15.5c0-4.2 2.8-7.5 7-7.5h2.5c3.2 0 5.5 2.3 5.5 5.5v4H8.5A4.5 4.5 0 0 1 4 13z"/>
+          <path d="M13 8V5.5M16 9V6.5M7.5 18v2M14.5 18v2M17 12h.01"/>
+        </svg>
+      </span>
+      <span class="life" id="life3">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 15.5c0-4.2 2.8-7.5 7-7.5h2.5c3.2 0 5.5 2.3 5.5 5.5v4H8.5A4.5 4.5 0 0 1 4 13z"/>
+          <path d="M13 8V5.5M16 9V6.5M7.5 18v2M14.5 18v2M17 12h.01"/>
+        </svg>
+      </span>
+    </div>
+
+    <div class="mobile-controls">
+      <button class="control-button" id="pauseButton" aria-label="Пауза">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M8 5v14M16 5v14"/>
+        </svg>
+      </button>
+      <button class="control-button" id="jumpButton" aria-label="Прыжок">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 17l7-10 7 10M12 7v12"/>
+        </svg>
+      </button>
+    </div>
+  </footer>
+</main>
+
+<script>
+(() => {
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const scoreNode = document.getElementById("score");
+  const bestNode = document.getElementById("best");
+  const overlay = document.getElementById("overlay");
+  const overlayTitle = document.getElementById("overlayTitle");
+  const overlayText = document.getElementById("overlayText");
+  const startButton = document.getElementById("startButton");
+  const pauseButton = document.getElementById("pauseButton");
+  const jumpButton = document.getElementById("jumpButton");
+  const lives = [
+    document.getElementById("life1"),
+    document.getElementById("life2"),
+    document.getElementById("life3")
+  ];
+
+  let width = 800;
+  let height = 420;
+  let dpr = 1;
+  let running = false;
+  let paused = false;
+  let lastTime = 0;
+  let score = 0;
+  let best = Number(localStorage.getItem("dino-best-score") || 0);
+  let livesLeft = 3;
+  let speed = 285;
+  let spawnTimer = 0;
+  let groundY = 0;
+  let obstacles = [];
+  let particles = [];
+  let clouds = [];
+  let shake = 0;
+
+  const dino = {
+    x: 82,
+    y: 0,
+    width: 42,
+    height: 48,
+    velocityY: 0,
+    grounded: true,
+    invulnerable: 0
+  };
+
+  bestNode.textContent = String(best).padStart(5, "0");
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    width = Math.max(320, rect.width);
+    height = Math.max(300, rect.height);
+    canvas.width = Math.round(width * dpr);
+    canvas.height = Math.round(height * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    groundY = height - Math.max(54, height * .15);
+    dino.x = Math.max(42, width * .1);
+    if (dino.grounded) dino.y = groundY - dino.height;
+    clouds = [
+      { x: width * .2, y: height * .18, size: 1 },
+      { x: width * .64, y: height * .28, size: .72 },
+      { x: width * .86, y: height * .12, size: .52 }
+    ];
+    draw();
+  }
+
+  function resetGame() {
+    score = 0;
+    livesLeft = 3;
+    speed = 285;
+    spawnTimer = .7;
+    obstacles = [];
+    particles = [];
+    dino.velocityY = 0;
+    dino.grounded = true;
+    dino.invulnerable = 0;
+    dino.y = groundY - dino.height;
+    lives.forEach(life => life.classList.remove("lost"));
+    scoreNode.textContent = "00000";
+  }
+
+  function startGame() {
+    resetGame();
+    running = true;
+    paused = false;
+    overlay.classList.add("hidden");
+    lastTime = performance.now();
+    requestAnimationFrame(loop);
+  }
+
+  function endGame() {
+    running = false;
+    paused = false;
+    if (score > best) {
+      best = score;
+      localStorage.setItem("dino-best-score", best);
+      bestNode.textContent = String(best).padStart(5, "0");
+    }
+    overlayTitle.textContent = "Игра окончена";
+    overlayText.textContent = `Счёт: ${String(score).padStart(5, "0")}`;
+    startButton.textContent = "Играть снова";
+    overlay.classList.remove("hidden");
+  }
+
+  function togglePause() {
+    if (!running) return;
+    paused = !paused;
+    if (paused) {
+      overlayTitle.textContent = "Пауза";
+      overlayText.textContent = "Продолжи забег";
+      startButton.textContent = "Продолжить";
+      overlay.classList.remove("hidden");
+    } else {
+      overlay.classList.add("hidden");
+      lastTime = performance.now();
+      requestAnimationFrame(loop);
+    }
+  }
+
+  function jump() {
+    if (!running || paused || !dino.grounded) return;
+    dino.velocityY = -690;
+    dino.grounded = false;
+    burst(dino.x + 18, groundY - 5, "#4f8f64", 5);
+  }
+
+  function createObstacle() {
+    const tall = Math.random() > .45;
+    const cactus = {
+      x: width + 24,
+      y: groundY - (tall ? 57 : 42),
+      width: tall ? 30 : 24,
+      height: tall ? 57 : 42,
+      variant: tall ? 1 : 0
+    };
+    obstacles.push(cactus);
+  }
+
+  function burst(x, y, color, amount) {
+    for (let i = 0; i < amount; i++) {
+      particles.push({
+        x,
+        y,
+        vx: (Math.random() - .5) * 150,
+        vy: -Math.random() * 130,
+        life: .45 + Math.random() * .35,
+        color
+      });
+    }
+  }
+
+  function loseLife() {
+    if (dino.invulnerable > 0) return;
+    livesLeft--;
+    dino.invulnerable = 1.35;
+    shake = .28;
+    lives[3 - livesLeft].classList.add("lost");
+    burst(dino.x + 20, dino.y + 22, "#ee6c4d", 14);
+    if (livesLeft <= 0) endGame();
+  }
+
+  function hit(a, b) {
+    const padX = 7;
+    const padY = 5;
+    return (
+      a.x + padX < b.x + b.width &&
+      a.x + a.width - padX > b.x &&
+      a.y + padY < b.y + b.height &&
+      a.y + a.height - padY > b.y
+    );
+  }
+
+  function update(dt) {
+    score += dt * 10;
+    scoreNode.textContent = String(Math.floor(score)).padStart(5, "0");
+    speed = Math.min(510, 285 + score * 1.7);
+
+    dino.velocityY += 1700 * dt;
+    dino.y += dino.velocityY * dt;
+    if (dino.y + dino.height >= groundY) {
+      dino.y = groundY - dino.height;
+      dino.velocityY = 0;
+      dino.grounded = true;
+    }
+
+    dino.invulnerable = Math.max(0, dino.invulnerable - dt);
+    spawnTimer -= dt;
+    if (spawnTimer <= 0) {
+      createObstacle();
+      spawnTimer = Math.max(.62, 1.35 - score / 1500) + Math.random() * .7;
+    }
+
+    obstacles.forEach(obstacle => obstacle.x -= speed * dt);
+    obstacles = obstacles.filter(obstacle => obstacle.x + obstacle.width > -20);
+
+    for (const obstacle of obstacles) {
+      if (hit(dino, obstacle)) {
+        obstacle.x = -100;
+        loseLife();
+        break;
+      }
+    }
+
+    particles.forEach(particle => {
+      particle.x += particle.vx * dt;
+      particle.y += particle.vy * dt;
+      particle.vy += 350 * dt;
+      particle.life -= dt;
+    });
+    particles = particles.filter(particle => particle.life > 0);
+
+    shake = Math.max(0, shake - dt);
+  }
+
+  function drawCloud(x, y, size) {
+    ctx.save();
+    ctx.globalAlpha = .46;
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(x, y, 17 * size, 0, Math.PI * 2);
+    ctx.arc(x + 23 * size, y - 8 * size, 24 * size, 0, Math.PI * 2);
+    ctx.arc(x + 51 * size, y, 16 * size, 0, Math.PI * 2);
+    ctx.roundRect(x - 5 * size, y, 62 * size, 17 * size, 9 * size);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawDino() {
+    if (dino.invulnerable > 0 && Math.floor(dino.invulnerable * 12) % 2 === 0) return;
+    const x = dino.x;
+    const y = dino.y;
+    ctx.save();
+    ctx.fillStyle = "#4f8f64";
+    ctx.beginPath();
+    ctx.roundRect(x + 8, y + 14, 27, 29, 8);
+    ctx.roundRect(x + 21, y + 2, 21, 24, 7);
+    ctx.moveTo(x + 9, y + 21);
+    ctx.lineTo(x - 6, y + 30);
+    ctx.lineTo(x + 10, y + 33);
+    ctx.fill();
+
+    ctx.fillStyle = "#d9f0ed";
+    ctx.beginPath();
+    ctx.arc(x + 34, y + 12, 2.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#315a45";
+    ctx.fillRect(x + 13, y + 40, 7, 11);
+    ctx.fillRect(x + 29, y + 40, 7, 11);
+    ctx.fillRect(x + 10, y + 48, 11, 3);
+    ctx.fillRect(x + 28, y + 48, 11, 3);
+
+    ctx.fillStyle = "#315a45";
+    ctx.fillRect(x + 39, y + 19, 9, 3);
+    ctx.restore();
+  }
+
+  function drawCactus(obstacle) {
+    const x = obstacle.x;
+    const y = obstacle.y;
+    const w = obstacle.width;
+    const h = obstacle.height;
+    ctx.save();
+    ctx.fillStyle = "#4f8f64";
+    ctx.beginPath();
+    ctx.roundRect(x + w * .34, y, w * .32, h, 5);
+    ctx.roundRect(x, y + h * .43, w * .43, 10, 5);
+    ctx.roundRect(x, y + h * .22, 8, h * .27, 4);
+    ctx.roundRect(x + w * .57, y + h * .55, w * .43, 10, 5);
+    ctx.roundRect(x + w - 8, y + h * .35, 8, h * .28, 4);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    if (shake > 0) {
+      ctx.translate((Math.random() - .5) * 8, (Math.random() - .5) * 5);
+    }
+
+    const sky = ctx.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(0, "#c9e9e6");
+    sky.addColorStop(1, "#edf5e6");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = "rgba(238,108,77,.22)";
+    ctx.beginPath();
+    ctx.arc(width * .78, height * .23, 42, 0, Math.PI * 2);
+    ctx.fill();
+
+    clouds.forEach(cloud => drawCloud(cloud.x, cloud.y, cloud.size));
+
+    ctx.fillStyle = "rgba(79,143,100,.14)";
+    ctx.beginPath();
+    ctx.moveTo(0, groundY);
+    ctx.quadraticCurveTo(width * .24, groundY - 50, width * .48, groundY);
+    ctx.quadraticCurveTo(width * .73, groundY - 42, width, groundY);
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.fill();
+
+    ctx.strokeStyle = "#315a45";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, groundY + 1);
+    ctx.lineTo(width, groundY + 1);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(49,90,69,.2)";
+    ctx.lineWidth = 2;
+    for (let x = -(score * 7 % 42); x < width; x += 42) {
+      ctx.beginPath();
+      ctx.moveTo(x, groundY + 17);
+      ctx.lineTo(x + 13, groundY + 17);
+      ctx.stroke();
+    }
+
+    obstacles.forEach(drawCactus);
+    drawDino();
+
+    particles.forEach(particle => {
+      ctx.globalAlpha = Math.max(0, particle.life * 2);
+      ctx.fillStyle = particle.color;
+      ctx.fillRect(particle.x, particle.y, 4, 4);
+    });
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function loop(time) {
+    if (!running || paused) return;
+    const dt = Math.min(.035, (time - lastTime) / 1000);
+    lastTime = time;
+    update(dt);
+    draw();
+    if (running) requestAnimationFrame(loop);
+  }
+
+  startButton.addEventListener("click", () => {
+    if (running && paused) {
+      togglePause();
+    } else {
+      startGame();
+    }
+  });
+
+  pauseButton.addEventListener("click", togglePause);
+  jumpButton.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    jump();
+  });
+
+  canvas.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    jump();
+  });
+
+  window.addEventListener("keydown", event => {
+    if (event.code === "Space" || event.code === "ArrowUp") {
+      event.preventDefault();
+      jump();
+    }
+    if (event.code === "KeyP" || event.code === "Escape") {
+      event.preventDefault();
+      togglePause();
+    }
+  });
+
+  window.addEventListener("resize", resize);
+  resize();
+})();
+</script>
+</body>
+</html>
