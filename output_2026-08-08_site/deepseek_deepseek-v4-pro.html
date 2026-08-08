@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Юрий Иванов — Юридические услуги | Москва</title>
+    <style>
+        :root {
+            --navy: #0d1b2a;
+            --navy-light: #1b2d45;
+            --gold: #c9a050;
+            --gold-hover: #d4af6a;
+            --gold-light: #f0e4cc;
+            --white: #f8f7f4;
+            --gray: #6b7280;
+            --gray-light: #e5e7eb;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            background: #fff;
+            color: #1f2937;
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Scroll animations */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .fade-in-left {
+            opacity: 0;
+            transform: translateX(-40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-in-left.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .fade-in-right {
+            opacity: 0;
+            transform: translateX(40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .fade-in-right.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .scale-in {
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .scale-in.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(13, 27, 42, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            transition: all var(--transition);
+            padding: 0 20px;
+        }
+        .header.scrolled {
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 70px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.3rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .logo-icon {
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
+        }
+        .logo-icon .scales {
+            fill: none;
+            stroke: var(--gold);
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .logo-icon .circle-bg {
+            fill: var(--navy-light);
+            stroke: var(--gold);
+            stroke-width: 1.5;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .nav a {
+            color: #cbd5e1;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all var(--transition);
+            white-space: nowrap;
+            position: relative;
+        }
+        .nav a:hover,
+        .nav a.active {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 20px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 2px;
+            transition: transform var(--transition);
+        }
+        .nav a:hover::after {
+            transform: translateX(-50%) scaleX(1);
+        }
+        .nav-cta {
+            background: var(--gold) !important;
+            color: #0d1b2a !important;
+            font-weight: 600 !important;
+            border-radius: 6px !important;
+            padding: 10px 20px !important;
+            margin-left: 4px;
+        }
+        .nav-cta:hover {
+            background: var(--gold-hover) !important;
+            color: #0d1b2a !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(201, 160, 80, 0.35);
+        }
+
+        /* Mobile menu button */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 10px;
+            z-index: 1001;
+            background: none;
+            border: none;
+            width: 44px;
+            height: 36px;
+            justify-content: center;
+            align-items: center;
+        }
+        .menu-toggle span {
+            display: block;
+            width: 26px;
+            height: 2.5px;
+            background: #fff;
+            border-radius: 3px;
+            transition: all 0.35s ease;
+        }
+        .menu-toggle.active span:nth-child(1) {
+            transform: translateY(7.5px) rotate(45deg);
+        }
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+            transform: scaleX(0);
+        }
+        .menu-toggle.active span:nth-child(3) {
+            transform: translateY(-7.5px) rotate(-45deg);
+        }
+
+        /* Mobile nav */
+        .mobile-nav {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(13, 27, 42, 0.98);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            z-index: 999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .mobile-nav.active {
+            display: flex;
+            opacity: 1;
+            pointer-events: all;
+        }
+        .mobile-nav a {
+            color: #e2e8f0;
+            text-decoration: none;
+            font-size: 1.4rem;
+            font-weight: 500;
+            padding: 12px 28px;
+            border-radius: 8px;
+            transition: all var(--transition);
+            letter-spacing: 0.5px;
+        }
+        .mobile-nav a:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .mobile-nav .mobile-cta {
+            background: var(--gold);
+            color: #0d1b2a;
+            font-weight: 700;
+            margin-top: 12px;
+            padding: 14px 32px;
+            font-size: 1.2rem;
+        }
+
+        /* Main content */
+        main {
+            margin-top: 70px;
+        }
+
+        /* Hero section */
+        .hero {
+            background: var(--navy);
+            color: #fff;
+            padding: 100px 20px 90px;
+            position: relative;
+            overflow: hidden;
+            min-height: 85vh;
+            display: flex;
+            align-items: center;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(201, 160, 80, 0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(201, 160, 80, 0.04) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .hero-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(201, 160, 80, 0.15);
+            color: var(--gold);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            border: 1px solid rgba(201, 160, 80, 0.25);
+        }
+        .hero h1 {
+            font-size: clamp(2.2rem, 4vw, 3.2rem);
+            font-weight: 800;
+            line-height: 1.15;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        .hero h1 .gold {
+            color: var(--gold);
+        }
+        .hero .subtitle {
+            font-size: 1.15rem;
+            color: #b0bec5;
+            margin-bottom: 30px;
+            max-width: 480px;
+            line-height: 1.6;
+        }
+        .hero-buttons {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all var(--transition);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--gold);
+            color: #0d1b2a;
+        }
+        .btn-primary:hover {
+            background: var(--gold-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(201, 160, 80, 0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 2px solid rgba(255, 255, 255, 0.35);
+        }
+        .btn-outline:hover {
+            border-color: #fff;
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+        }
+        .btn-white {
+            background: #fff;
+            color: var(--navy);
+        }
+        .btn-white:hover {
+            background: #e8e6e0;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
+        }
+
+        /* Silhouette */
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .silhouette-container {
+            position: relative;
+            width: 280px;
+            height: 360px;
+        }
+        .silhouette-bg {
+            position: absolute;
+            inset: -20px;
+            background: radial-gradient(ellipse at center, rgba(201, 160, 80, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+            50% {
+                transform: scale(1.08);
+                opacity: 1;
+            }
+        }
+        .silhouette-svg {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Stats */
+        .hero-stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .hero-stat {
+            text-align: left;
+        }
+        .hero-stat .num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--gold);
+            line-height: 1;
+        }
+        .hero-stat .lbl {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* Section common */
+        .section {
+            padding: 80px 20px;
+        }
+        .section-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .section-label {
+            display: inline-block;
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .section-title {
+            font-size: clamp(1.8rem, 3vw, 2.4rem);
+            font-weight: 700;
+            color: #0d1b2a;
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+        .section-desc {
+            color: #6b7280;
+            font-size: 1.05rem;
+            max-width: 600px;
+            margin-bottom: 40px;
+            line-height: 1.7;
+        }
+
+        /* About */
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.3fr;
+            gap: 50px;
+            align-items: center;
+        }
+        .about-visual {
+            display: flex;
+            justify-content: center;
+        }
+        .about-silhouette {
+            width: 240px;
+            height: 300px;
+            background: var(--navy-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            box-shadow: var(--shadow-lg);
+        }
+        .about-silhouette svg {
+            width: 180px;
+            height: 260px;
+            margin-bottom: -10px;
+        }
+        .about-text .highlight {
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .about-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+        .about-list li {
+            padding: 8px 0 8px 30px;
+            position: relative;
+            color: #374151;
+            font-size: 0.98rem;
+        }
+        .about-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 14px;
+            width: 16px;
+            height: 16px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0.7;
+        }
+        .about-list li::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 19px;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border-radius: 50%;
+        }
+
+        /* Services */
+        .services-section {
+            background: #f9fafb;
+        }
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+        .service-card {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 30px 26px;
+            box-shadow: var(--shadow);
+            transition: all var(--transition);
+            border: 1px solid transparent;
+            cursor: default;
+            position: relative;
+            overflow: hidden;
+        }
+        .service-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(201, 160, 80, 0.25);
+        }
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gold);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform var(--transition);
+        }
+        .service-card:hover::before {
+            transform: scaleX(1);
+        }
+        .service-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(201, 160, 80, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 18px;
+            transition: all var(--transition);
+        }
+        .service-card:hover .service-icon {
+            background: rgba(201, 160, 80, 0.2);
+            transform: scale(1.05);
+        }
+        .service-icon svg {
+            width: 26px;
+            height: 26px;
+        }
+        .service-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #0d1b2a;
+            margin-bottom: 8px;
+        }
+        .service-card p {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Advantages */
+        .advantages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+        }
+        .advantage-item {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: var(--radius);
+            transition: all var(--transition);
+            background: #fff;
+            border: 1px solid #e5e7eb;
+        }
+        .advantage-item:hover {
+            border-color: var(--gold);
+            box-shadow: var(--shadow);
+        }
+        .advantage-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 16px;
+            background: var(--navy);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .advantage-icon svg {
+            width: 26px;
+            height: 26px;
+        }
+        .advantage-item h4 {
+            font-weight: 700;
+            color: #0d1b2a;
+            margin-bottom: 6px;
+        }
+        .advantage-item p {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Contact */
+        .contact-section {
+            background: var(--navy);
+            color: #fff;
+        }
+        .contact-section .section-title {
+            color: #fff;
+        }
+        .contact-section .section-desc {
+            color: #b0bec5;
+        }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        .contact-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .contact-info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: var(--radius-sm);
+            transition: all var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .contact-info-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(201, 160, 80, 0.3);
+        }
+        .contact-icon-wrap {
+            width: 44px;
+            height: 44px;
+            flex-shrink: 0;
+            background: rgba(201, 160, 80, 0.2);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .contact-icon-wrap svg {
+            width: 20px;
+            height: 20px;
+        }
+        .contact-info-item .info-text strong {
+            display: block;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+        .contact-info-item .info-text span {
+            color: #b0bec5;
+            font-size: 0.88rem;
+        }
+
+        .contact-form-wrap {
+            background: #fff;
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow-lg);
+        }
+        .contact-form-wrap h3 {
+            color: #0d1b2a;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: inherit;
+            transition: all var(--transition);
+            background: #fafbfc;
+            color: #1f2937;
+            outline: none;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201, 160, 80, 0.1);
+            background: #fff;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        .form-submit {
+            width: 100%;
+            padding: 14px;
+            background: var(--navy);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--transition);
+            letter-spacing: 0.3px;
+        }
+        .form-submit:hover {
+            background: #1b2d45;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 27, 42, 0.35);
+        }
+        .form-success {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: #059669;
+        }
+        .form-success.show {
+            display: block;
+        }
+        .form-success svg {
+            width: 50px;
+            height: 50px;
+            margin-bottom: 12px;
+        }
+
+        /* Footer */
+        .footer {
+            background: #080f17;
+            color: #94a3b8;
+            padding: 30px 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .footer a {
+            color: var(--gold);
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #059669;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            z-index: 2000;
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .hero-inner {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 30px;
+            }
+            .hero {
+                padding: 70px 20px 60px;
+                min-height: auto;
+            }
+            .hero .subtitle {
+                margin: 0 auto 24px;
+            }
+            .hero-buttons {
+                justify-content: center;
+            }
+            .hero-stats {
+                justify-content: center;
+                text-align: center;
+            }
+            .hero-stat {
+                text-align: center;
+            }
+            .hero-visual {
+                order: -1;
+            }
+            .silhouette-container {
+                width: 200px;
+                height: 260px;
+            }
+            .about-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            .about-visual {
+                order: -1;
+            }
+            .about-silhouette {
+                width: 180px;
+                height: 230px;
+                margin: 0 auto;
+            }
+            .about-silhouette svg {
+                width: 140px;
+                height: 200px;
+            }
+            .contact-grid {
+                grid-template-columns: 1fr;
+            }
+            .nav {
+                display: none;
+            }
+            .menu-toggle {
+                display: flex;
+            }
+            .section {
+                padding: 50px 16px;
+            }
+        }
+        @media (max-width: 500px) {
+            .hero h1 {
+                font-size: 1.7rem;
+            }
+            .hero-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+            .services-grid {
+                grid-template-columns: 1fr;
+            }
+            .advantages-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+            .advantage-item {
+                padding: 20px 12px;
+            }
+            .hero-stats {
+                gap: 16px;
+            }
+            .hero-stat .num {
+                font-size: 1.5rem;
+            }
+            .toast {
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" id="header">
+        <div class="header-inner">
+            <a href="#" class="logo">
+                <svg class="logo-icon" viewBox="0 0 42 42">
+                    <circle class="circle-bg" cx="21" cy="21" r="19"/>
+                    <line class="scales" x1="21" y1="6" x2="21" y2="20"/>
+                    <line class="scales" x1="8" y1="28" x2="34" y2="28"/>
+                    <polyline class="scales" points="10,28 21,12 32,28"/>
+                </svg>
+                Юрий Иванов
+            </a>
+            <nav class="nav" id="desktopNav">
+                <a href="#about">Обо мне</a>
+                <a href="#services">Услуги</a>
+                <a href="#advantages">Преимущества</a>
+                <a href="#contact" class="nav-cta">Консультация</a>
+            </nav>
+            <button class="menu-toggle" id="menuToggle" aria-label="Меню">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </header>
+    <div class="mobile-nav" id="mobileNav">
+        <a href="#about">Обо мне</a>
+        <a href="#services">Услуги</a>
+        <a href="#advantages">Преимущества</a>
+        <a href="#contact" class="mobile-cta">Консультация</a>
+    </div>
+
+    <main>
+        <!-- Hero -->
+        <section class="hero" id="hero">
+            <div class="hero-inner">
+                <div class="fade-in-left">
+                    <span class="hero-badge">Опыт более 15 лет</span>
+                    <h1>Юрий <span class="gold">Иванов</span></h1>
+                    <p class="subtitle">Надёжная юридическая защита ваших интересов в Москве. Специализируюсь на гражданском, семейном и жилищном праве.</p>
+                    <div class="hero-buttons">
+                        <a href="#contact" class="btn btn-primary">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="16" rx="2"/><polyline points="3 8 12 14 21 8"/></svg>
+                            Записаться на приём
+                        </a>
+                        <a href="#services" class="btn btn-outline">Мои услуги</a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat"><div class="num">850+</div><div class="lbl">Выигранных дел</div></div>
+                        <div class="hero-stat"><div class="num">15+</div><div class="lbl">Лет практики</div></div>
+                        <div class="hero-stat"><div class="num">98%</div><div class="lbl">Довольных клиентов</div></div>
+                    </div>
+                </div>
+                <div class="hero-visual fade-in-right">
+                    <div class="silhouette-container">
+                        <div class="silhouette-bg"></div>
+                        <svg class="silhouette-svg" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="suitGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#1b2d45"/>
+                                    <stop offset="100%" stop-color="#0d1b2a"/>
+                                </linearGradient>
+                            </defs>
+                            <!-- Head -->
+                            <ellipse cx="100" cy="55" rx="38" ry="44" fill="#1b2d45" stroke="#c9a050" stroke-width="1.5"/>
+                            <!-- Hair -->
+                            <path d="M62 45 Q100 8 138 45 Q140 55 138 50 Q100 18 62 50 Z" fill="#0d1b2a"/>
+                            <!-- Body/Suit -->
+                            <path d="M50 90 L40 210 Q40 240 70 255 L130 255 Q160 240 160 210 L150 90 Q140 100 100 105 Q60 100 50 90Z" fill="url(#suitGrad)" stroke="#c9a050" stroke-width="1.2"/>
+                            <!-- Tie -->
+                            <polygon points="92,105 108,105 106,170 100,185 94,170" fill="#c9a050" opacity="0.8"/>
+                            <!-- Collar -->
+                            <path d="M70 95 L100 120 L130 95" fill="none" stroke="#f8f7f4" stroke-width="2" opacity="0.6"/>
+                            <!-- Shoulders -->
+                            <ellipse cx="50" cy="100" rx="30" ry="14" fill="#1b2d45"/>
+                            <ellipse cx="150" cy="100" rx="30" ry="14" fill="#1b2d45"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About -->
+        <section class="section" id="about">
+            <div class="section-inner">
+                <span class="section-label fade-in">Обо мне</span>
+                <h2 class="section-title fade-in">Юрист с многолетним опытом в Москве</h2>
+                <div class="about-grid">
+                    <div class="about-visual fade-in-left">
+                        <div class="about-silhouette">
+                            <svg viewBox="0 0 180 260" xmlns="http://www.w3.org/2000/svg">
+                                <ellipse cx="90" cy="48" rx="32" ry="38" fill="#c9a050" opacity="0.35"/>
+                                <ellipse cx="90" cy="50" rx="30" ry="36" fill="#1b2d45"/>
+                                <path d="M55 80 L48 190 Q48 215 72 228 L108 228 Q132 215 132 190 L125 80 Q118 90 90 94 Q62 90 55 80Z" fill="#1b2d45"/>
+                                <polygon points="83,92 97,92 95,148 90,162 85,148" fill="#c9a050" opacity="0.7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="about-text fade-in-right">
+                        <p style="font-size:1.05rem;color:#374151;line-height:1.7;">
+                            Меня зовут <span class="highlight">Юрий Иванов</span>, я практикующий юрист с офисом в Москве на <strong>ул. Люблинская, д. 160</strong>. Более 15 лет я помогаю гражданам и предпринимателям решать сложные правовые вопросы.
+                        </p>
+                        <ul class="about-list">
+                            <li>Полное юридическое сопровождение физических и юридических лиц</li>
+                            <li>Представление интересов в судах всех инстанций Москвы</li>
+                            <li>Досудебное урегулирование споров и медиация</li>
+                            <li>Индивидуальный подход к каждому клиенту</li>
+                        </ul>
+                        <p style="margin-top:16px;color:#4b5563;">
+                            Моя цель — защитить ваши права и добиться наилучшего результата в рамках закона. Работаю честно, открыто и на результат.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Services -->
+        <section class="section services-section" id="services">
+            <div class="section-inner">
+                <span class="section-label fade-in">Услуги</span>
+                <h2 class="section-title fade-in">Чем я могу вам помочь</h2>
+                <p class="section-desc fade-in">Широкий спектр юридических услуг для физических и юридических лиц.</p>
+                <div class="services-grid">
+                    <div class="service-card fade-in" style="transition-delay:0.05s;">
+                        <div class="service-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <h3>Гражданское право</h3>
+                        <p>Споры по договорам, защита прав потребителей, возмещение ущерба, наследственные дела.</p>
+                    </div>
+                    <div class="service-card fade-in" style="transition-delay:0.1s;">
+                        <div class="service-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <h3>Семейное право</h3>
+                        <p>Расторжение брака, раздел имущества, алименты, определение места жительства детей.</p>
+                    </div>
+                    <div class="service-card fade-in" style="transition-delay:0.15s;">
+                        <div class="service-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        </div>
+                        <h3>Жилищное право</h3>
+                        <p>Споры с застройщиками, выселение, признание права собственности, приватизация.</p>
+                    </div>
+                    <div class="service-card fade-in" style="transition-delay:0.2s;">
+                        <div class="service-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        </div>
+                        <h3>Консультации</h3>
+                        <p>Устные и письменные консультации, правовой анализ документов, оценка перспектив дела.</p>
+                    </div>
+                    <div class="service-card fade-in" style="transition-delay:0.25s;">
+                        <div class="service-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        </div>
+                        <h3>Арбитраж</h3>
+                        <p>Представительство в арбитражных судах, корпоративные споры, банкротство.</p>
+                    </div>
+                    <div class="service-card fade-in" style="transition-delay:0.3s;">
+                        <div class="service-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+                        </div>
+                        <h3>Договорное право</h3>
+                        <p>Составление и экспертиза договоров, претензионная работа, взыскание задолженности.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advantages -->
+        <section class="section" id="advantages">
+            <div class="section-inner">
+                <span class="section-label fade-in">Преимущества</span>
+                <h2 class="section-title fade-in">Почему выбирают меня</h2>
+                <p class="section-desc fade-in">Каждое дело для меня — это личная ответственность за результат.</p>
+                <div class="advantages-grid">
+                    <div class="advantage-item fade-in" style="transition-delay:0.05s;">
+                        <div class="advantage-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        </div>
+                        <h4>Гарантия качества</h4>
+                        <p>Чёткое соблюдение сроков и обязательств</p>
+                    </div>
+                    <div class="advantage-item fade-in" style="transition-delay:0.1s;">
+                        <div class="advantage-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="1" y="1" width="22" height="22" rx="4"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="2"/></svg>
+                        </div>
+                        <h4>Прозрачность</h4>
+                        <p>Открытые условия сотрудничества без скрытых платежей</p>
+                    </div>
+                    <div class="advantage-item fade-in" style="transition-delay:0.15s;">
+                        <div class="advantage-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        </div>
+                        <h4>Оперативность</h4>
+                        <p>Быстрая реакция на обращения и сжатые сроки работы</p>
+                    </div>
+                    <div class="advantage-item fade-in" style="transition-delay:0.2s;">
+                        <div class="advantage-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        </div>
+                        <h4>Забота о клиенте</h4>
+                        <p>Индивидуальный подход и внимание к каждому делу</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact -->
+        <section class="section contact-section" id="contact">
+            <div class="section-inner">
+                <span class="section-label fade-in" style="color:#d4af6a;">Контакты</span>
+                <h2 class="section-title fade-in">Свяжитесь со мной</h2>
+                <p class="section-desc fade-in">Запишитесь на консультацию или задайте вопрос — я отвечу в течение дня.</p>
+                <div class="contact-grid">
+                    <div class="contact-info fade-in-left">
+                        <div class="contact-info-item">
+                            <div class="contact-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            </div>
+                            <div class="info-text">
+                                <strong>Адрес офиса</strong>
+                                <span>Москва, ул. Люблинская, д. 160</span>
+                            </div>
+                        </div>
+                        <div class="contact-info-item">
+                            <div class="contact-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2 8 12 14 22 8"/></svg>
+                            </div>
+                            <div class="info-text">
+                                <strong>Электронная почта</strong>
+                                <span>ivanov@law-msk.ru</span>
+                            </div>
+                        </div>
+                        <div class="contact-info-item">
+                            <div class="contact-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                            </div>
+                            <div class="info-text">
+                                <strong>Телефон</strong>
+                                <span>+7 (495) 123-45-67</span>
+                            </div>
+                        </div>
+                        <div class="contact-info-item">
+                            <div class="contact-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#c9a050" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            </div>
+                            <div class="info-text">
+                                <strong>Часы приёма</strong>
+                                <span>Пн–Пт: 09:00 – 19:00, Сб: 10:00 – 15:00</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="fade-in-right">
+                        <div class="contact-form-wrap" id="formWrapper">
+                            <h3>Оставьте заявку</h3>
+                            <form id="contactForm">
+                                <div class="form-group">
+                                    <label for="name">Ваше имя *</label>
+                                    <input type="text" id="name" name="name" placeholder="Иван Петров" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="phone">Телефон *</label>
+                                    <input type="tel" id="phone" name="phone" placeholder="+7 (___) ___-__-__" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="topic">Тема обращения</label>
+                                    <select id="topic" name="topic">
+                                        <option value="">Выберите тему</option>
+                                        <option value="civil">Гражданское право</option>
+                                        <option value="family">Семейное право</option>
+                                        <option value="housing">Жилищное право</option>
+                                        <option value="arbitration">Арбитраж</option>
+                                        <option value="consultation">Консультация</option>
+                                        <option value="other">Другое</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="message">Сообщение</label>
+                                    <textarea id="message" name="message" placeholder="Опишите вашу ситуацию..."></textarea>
+                                </div>
+                                <button type="submit" class="form-submit">Отправить заявку</button>
+                            </form>
+                            <div class="form-success" id="formSuccess">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="8 12 11 15 16 9"/></svg>
+                                <p style="font-weight:700;font-size:1.1rem;color:#059669;">Спасибо за обращение!</p>
+                                <p style="color:#6b7280;margin-top:4px;">Я свяжусь с вами в ближайшее время.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Юрий Иванов. Юридические услуги в Москве. | ул. Люблинская, д. 160</p>
+        <p style="margin-top:4px;">Все права защищены. <a href="#">Политика конфиденциальности</a></p>
+    </footer>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Scroll animations
+        const observerOptions = { threshold: 0.15, rootMargin: '0px 0px -30px 0px' };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll(
+            '.fade-in, .fade-in-left, .fade-in-right, .scale-in'
+        ).forEach(el => observer.observe(el));
+
+        // Header scroll effect
+        const header = document.getElementById('header');
+        window.addEventListener('scroll', () => {
+            header.classList.toggle('scrolled', window.scrollY > 30);
+        });
+
+        // Mobile menu
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileNav = document.getElementById('mobileNav');
+        const mobileLinks = mobileNav.querySelectorAll('a');
+
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            mobileNav.classList.toggle('active');
+            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+        });
+
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                mobileNav.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+
+        // Smooth close mobile nav on outside click
+        mobileNav.addEventListener('click', (e) => {
+            if (e.target === mobileNav) {
+                menuToggle.classList.remove('active');
+                mobileNav.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Contact form with localStorage
+        const contactForm = document.getElementById('contactForm');
+        const formWrapper = document.getElementById('formWrapper');
+        const formSuccess = document.getElementById('formSuccess');
+        const toast = document.getElementById('toast');
+
+        // Load saved form data
+        const savedData = JSON.parse(localStorage.getItem('lawyer_contact_form') || '{}');
+        if (savedData.name) document.getElementById('name').value = savedData.name || '';
+        if (savedData.phone) document.getElementById('phone').value = savedData.phone || '';
+        if (savedData.topic) document.getElementById('topic').value = savedData.topic || '';
+        if (savedData.message) document.getElementById('message').value = savedData.message || '';
+
+        // Save form data on input
+        const formInputs = contactForm.querySelectorAll('input, textarea, select');
+        formInputs.forEach(input => {
+            input.addEventListener('input', () => {
+                const data = {
+                    name: document.getElementById('name').value,
+                    phone: document.getElementById('phone').value,
+                    topic: document.getElementById('topic').value,
+                    message: document.getElementById('message').value,
+                };
+                localStorage.setItem('lawyer_contact_form', JSON.stringify(data));
+            });
+        });
+
+        // Toast function
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Form submit
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+
+            if (!name || !phone) {
+                showToast('Пожалуйста, заполните обязательные поля');
+                return;
+            }
+
+            // Save submission
+            const submissions = JSON.parse(localStorage.getItem('lawyer_submissions') || '[]');
+            submissions.push({
+                name,
+                phone,
+                topic: document.getElementById('topic').value,
+                message: document.getElementById('message').value,
+                date: new Date().toISOString(),
+            });
+            localStorage.setItem('lawyer_submissions', JSON.stringify(submissions));
+
+            // Clear saved draft
+            localStorage.removeItem('lawyer_contact_form');
+
+            // Show success
+            contactForm.style.display = 'none';
+            formSuccess.classList.add('show');
+            showToast('Заявка успешно отправлена!');
+
+            // Reset after delay
+            setTimeout(() => {
+                contactForm.reset();
+                contactForm.style.display = 'block';
+                formSuccess.classList.remove('show');
+            }, 4000);
+        });
+
+        // Active nav link highlight
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('#desktopNav a:not(.nav-cta)');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - 100;
+                if (window.scrollY >= sectionTop) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Initial animation trigger for elements already in view
+        setTimeout(() => {
+            document.querySelectorAll(
+                '.fade-in, .fade-in-left, .fade-in-right, .scale-in'
+            ).forEach(el => {
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight) {
+                    el.classList.add('visible');
+                }
+            });
+        }, 200);
+    </script>
+</body>
+</html>

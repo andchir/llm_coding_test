@@ -25,6 +25,7 @@ cp .env-example .env
    - `SYSTEM_PROMPT` - System prompt that defines the AI behavior
    - `TEMPERATURE` - Temperature parameter for API calls (default: 0.3)
    - `FOLDER_NAME` - Folder name where results are saved (default: output)
+   - `CURRENCY` - Currency unit for prices (default: RUB)
 
 ## Usage
 
@@ -37,9 +38,20 @@ The script will:
 1. Load configuration from `.env` file
 2. Process each model sequentially
 3. Create HTML files in the `output/` directory
-4. Save output token counts to `output/token_usage.json`; each entry contains
-   the model name, output token count, and a `price` field initialized to `0`
+4. Save the current prompt, currency, and output token counts to `output/token_usage.json`;
+   its `results` list contains the model name, output token count, and a `price`
+   field initialized to `0`
 5. Name each HTML file according to the model name (with `/` replaced by `_`)
+
+Generate `index.html` next to the JSON file using `summary_template.html`:
+```bash
+python3 generate_summary.py output/token_usage.json
+```
+
+Use another template if needed:
+```bash
+python3 generate_summary.py output/token_usage.json --template custom_template.html
+```
 
 ## Example
 

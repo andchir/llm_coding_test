@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Юрист Юрий Иванов — правовая помощь в Москве. Консультации, защита в суде, сопровождение сделок и разрешение споров.">
+  <title>Юрий Иванов — юрист в Москве</title>
+  <style>
+    :root {
+      --navy: #101b35;
+      --navy-deep: #091126;
+      --blue: #2458d7;
+      --blue-light: #eaf0ff;
+      --gold: #c99b52;
+      --cream: #f7f8fb;
+      --text: #19243b;
+      --muted: #69758c;
+      --white: #fff;
+      --line: #e4e8f0;
+      --shadow: 0 20px 55px rgba(14, 29, 64, .11);
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--white);
+      line-height: 1.6;
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; border: 0; }
+    .container { width: min(1180px, calc(100% - 40px)); margin: auto; }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .eyebrow:before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: currentColor;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1, h2, h3 { line-height: 1.12; letter-spacing: -.035em; }
+    h1 { font-size: clamp(42px, 6vw, 76px); margin-bottom: 25px; }
+    h2 { font-size: clamp(31px, 4vw, 48px); margin-bottom: 18px; }
+    h3 { font-size: 21px; margin-bottom: 10px; }
+    .muted { color: var(--muted); }
+
+    header {
+      position: absolute;
+      z-index: 5;
+      width: 100%;
+      top: 0;
+      color: white;
+    }
+    .nav {
+      height: 88px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 25px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      letter-spacing: .01em;
+      white-space: nowrap;
+    }
+    .logo-mark {
+      width: 39px;
+      height: 39px;
+      border: 1px solid rgba(255,255,255,.55);
+      border-radius: 11px;
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+    }
+    .logo-mark svg { width: 25px; height: 25px; }
+    .logo small {
+      display: block;
+      color: #aeb8cf;
+      font-size: 10px;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      margin-top: 1px;
+      font-weight: 600;
+    }
+    .nav-links { display: flex; align-items: center; gap: 28px; font-size: 14px; color: #dce4f5; }
+    .nav-links a { transition: color .25s ease; }
+    .nav-links a:hover { color: var(--gold); }
+    .nav-phone { font-weight: 700; font-size: 15px; white-space: nowrap; }
+    .menu-btn { display: none; background: transparent; color: white; padding: 8px; }
+    .menu-btn svg { width: 25px; height: 25px; }
+
+    .hero {
+      min-height: 735px;
+      padding: 174px 0 100px;
+      color: white;
+      overflow: hidden;
+      position: relative;
+      background:
+        radial-gradient(circle at 85% 18%, rgba(47, 94, 210, .32), transparent 30%),
+        linear-gradient(112deg, #0b142d 0%, #121e3c 58%, #172b5b 100%);
+    }
+    .hero:before, .hero:after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      border: 1px solid rgba(255,255,255,.07);
+      transform: rotate(28deg);
+    }
+    .hero:before { width: 530px; height: 530px; right: -170px; top: 120px; border-radius: 80px; }
+    .hero:after { width: 350px; height: 350px; right: 100px; top: 270px; border-radius: 58px; }
+    .hero-grid { display: grid; grid-template-columns: 1.12fr .88fr; gap: 70px; align-items: center; position: relative; z-index: 1; }
+    .hero .eyebrow { color: #e7bc72; }
+    .hero p { max-width: 580px; font-size: 18px; color: #c1cbe0; margin-bottom: 32px; }
+    .hero-actions { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      min-height: 53px;
+      padding: 0 24px;
+      border-radius: 10px;
+      background: var(--blue);
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      transition: background .25s, transform .25s, box-shadow .25s;
+    }
+    .btn:hover { background: #3970ed; transform: translateY(-2px); box-shadow: 0 12px 25px rgba(36,88,215,.28); }
+    .btn-outline { background: transparent; border: 1px solid rgba(255,255,255,.3); }
+    .btn-outline:hover { background: white; color: var(--navy); }
+    .hero-note { display: flex; gap: 24px; margin-top: 42px; color: #aab6d0; font-size: 13px; }
+    .hero-note strong { display: block; color: white; font-size: 24px; margin-bottom: 2px; }
+    .law-card {
+      position: relative;
+      min-height: 430px;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 26px;
+      background: linear-gradient(145deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
+      backdrop-filter: blur(12px);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      animation: floatCard 6s ease-in-out infinite;
+    }
+    .law-card:before {
+      content: "§";
+      position: absolute;
+      right: 28px;
+      top: 7px;
+      font-family: Georgia, serif;
+      font-size: 220px;
+      line-height: 1;
+      color: rgba(255,255,255,.05);
+    }
+    .card-top { position: relative; z-index: 1; color: #bbc6de; font-size: 13px; }
+    .scales { width: 75px; height: 75px; color: var(--gold); margin-bottom: 14px; }
+    .law-card h3 { position: relative; z-index: 1; font-size: 27px; max-width: 280px; margin-bottom: 0; }
+    .law-card-footer { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: end; color: #aebbd4; font-size: 12px; }
+    .law-card-footer strong { color: white; display: block; font-size: 16px; }
+
+    .stats { background: var(--cream); border-bottom: 1px solid var(--line); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); padding: 27px 0; }
+    .stat { padding: 0 30px; border-right: 1px solid var(--line); }
+    .stat:first-child { padding-left: 0; }
+    .stat:last-child { border: 0; }
+    .stat strong { display: block; color: var(--navy); font-size: 28px; line-height: 1.1; }
+    .stat span { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; }
+
+    section { padding: 105px 0; }
+    .section-head { max-width: 680px; margin-bottom: 45px; }
+    .section-head p { color: var(--muted); font-size: 16px; }
+    .services { background: var(--white); }
+    .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 17px; }
+    .service {
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      padding: 28px 25px;
+      transition: transform .3s, border-color .3s, box-shadow .3s;
+    }
+    .service:hover { transform: translateY(-7px); border-color: #bed0fb; box-shadow: var(--shadow); }
+    .service-icon {
+      width: 48px; height: 48px; border-radius: 13px;
+      display: grid; place-items: center; color: var(--blue); background: var(--blue-light); margin-bottom: 25px;
+    }
+    .service-icon svg { width: 24px; height: 24px; }
+    .service p { color: var(--muted); font-size: 14px; margin-bottom: 0; }
+    .about { background: var(--cream); }
+    .about-grid { display: grid; grid-template-columns: .85fr 1.15fr; gap: 75px; align-items: center; }
+    .portrait {
+      min-height: 450px; border-radius: 25px; position: relative; overflow: hidden;
+      background: linear-gradient(145deg, #dfe7f5, #abb9d4);
+      display: flex; align-items: end; justify-content: center;
+    }
+    .portrait:after { content: "ЮИ"; position: absolute; top: 22px; left: 25px; color: rgba(16,27,53,.35); font-size: 13px; font-weight: 800; letter-spacing: .16em; }
+    .silhouette { width: 78%; height: 90%; color: var(--navy); opacity: .89; }
+    .about-copy p { color: var(--muted); }
+    .check-list { list-style: none; padding: 8px 0 0; margin: 0; display: grid; gap: 13px; }
+    .check-list li { display: flex; gap: 12px; align-items: start; font-size: 14px; }
+    .check-list svg { flex: 0 0 20px; color: var(--blue); margin-top: 2px; }
+
+    .process { background: var(--white); }
+    .process-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 25px; }
+    .step { position: relative; padding-top: 21px; border-top: 1px solid var(--line); }
+    .step-number { color: var(--gold); font-size: 13px; font-weight: 800; margin-bottom: 18px; }
+    .step p { color: var(--muted); font-size: 14px; }
+
+    .contact { background: var(--navy); color: white; }
+    .contact-grid { display: grid; grid-template-columns: .82fr 1.18fr; gap: 85px; align-items: start; }
+    .contact .muted { color: #aeb9d0; }
+    .contact-info { margin-top: 35px; display: grid; gap: 19px; }
+    .contact-item { display: flex; gap: 13px; align-items: center; color: #cbd4e6; font-size: 14px; }
+    .contact-item svg { width: 19px; color: var(--gold); flex: 0 0 auto; }
+    .contact-item strong { display: block; color: white; font-size: 17px; }
+    .contact-form { background: white; color: var(--text); padding: 33px; border-radius: 20px; box-shadow: var(--shadow); }
+    .contact-form h3 { margin-bottom: 20px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 13px; }
+    label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+    input, textarea { width: 100%; border: 1px solid var(--line); background: #fafbfe; border-radius: 9px; padding: 13px 14px; outline: none; color: var(--text); transition: border .2s, box-shadow .2s; }
+    input:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(36,88,215,.1); }
+    textarea { resize: vertical; min-height: 104px; }
+    .field { margin-bottom: 16px; }
+    .form-submit { width: 100%; margin-top: 3px; }
+    .form-note { color: var(--muted); font-size: 11px; margin: 12px 0 0; text-align: center; }
+    footer { background: var(--navy-deep); color: #8995af; padding: 23px 0; font-size: 12px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 20px; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 10; transform: translateY(100px); opacity: 0; background: #17284c; color: white; padding: 15px 20px; border-radius: 10px; box-shadow: var(--shadow); transition: .35s; font-size: 14px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    @keyframes floatCard { 0%,100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(.6deg); } }
+    @media (max-width: 850px) {
+      .nav-links { display: none; position: absolute; top: 76px; left: 20px; right: 20px; padding: 20px; border-radius: 15px; background: var(--navy); flex-direction: column; align-items: stretch; gap: 16px; box-shadow: var(--shadow); }
+      .nav-links.open { display: flex; }
+      .menu-btn { display: block; }
+      .nav-phone { display: none; }
+      .hero { padding-top: 140px; }
+      .hero-grid, .about-grid, .contact-grid { grid-template-columns: 1fr; gap: 45px; }
+      .hero { min-height: auto; }
+      .law-card { min-height: 350px; }
+      .stats-grid { grid-template-columns: repeat(2,1fr); gap: 23px 0; }
+      .stat:nth-child(2) { border: 0; }
+      .service-grid { grid-template-columns: repeat(2, 1fr); }
+      .process-grid { grid-template-columns: repeat(2,1fr); }
+      .about-grid { gap: 25px; }
+      .portrait { min-height: 350px; }
+    }
+    @media (max-width: 520px) {
+      .container { width: min(100% - 28px, 1180px); }
+      .nav { height: 74px; }
+      .hero { padding: 125px 0 65px; }
+      h1 { font-size: 43px; }
+      .hero p { font-size: 16px; }
+      .hero-note { gap: 15px; }
+      .hero-note strong { font-size: 20px; }
+      section { padding: 70px 0; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .stat { padding: 0 12px; }
+      .stat:first-child { padding-left: 0; }
+      .stat strong { font-size: 23px; }
+      .service-grid, .process-grid, .form-row { grid-template-columns: 1fr; }
+      .law-card { min-height: 310px; padding: 24px; }
+      .contact-grid { gap: 32px; }
+      .contact-form { padding: 22px 18px; }
+      .footer-inner { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a href="#top" class="logo">
+        <span class="logo-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+            <path d="M12 3v16M7 7h10M5 20h14M8 7l-3 6a3 3 0 0 0 6 0L8 7Zm8 0-3 6a3 3 0 0 0 6 0l-3-6Z"/>
+          </svg>
+        </span>
+        <span>ЮРИЙ ИВАНОВ<small>частная юридическая практика</small></span>
+      </a>
+      <nav class="nav-links" id="navLinks">
+        <a href="#services">Услуги</a>
+        <a href="#about">О юристе</a>
+        <a href="#process">Как работаю</a>
+        <a href="#contact">Контакты</a>
+      </nav>
+      <a class="nav-phone" href="tel:+74951234567">+7 (495) 123-45-67</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Открыть меню">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="eyebrow">Юридическая помощь в Москве</span>
+          <h1>Ваши права.<br><span style="color:#d9aa61">Моя защита.</span></h1>
+          <p>Помогаю разобраться в сложных правовых вопросах, защитить интересы и добиться результата — спокойно, последовательно и по существу.</p>
+          <div class="hero-actions">
+            <a href="#contact" class="btn">Получить консультацию <span>→</span></a>
+            <a href="tel:+74951234567" class="btn btn-outline">Позвонить юристу</a>
+          </div>
+          <div class="hero-note">
+            <div><strong>15+</strong>лет практики</div>
+            <div><strong>500+</strong>дел в работе</div>
+            <div><strong>24/7</strong>на связи</div>
+          </div>
+        </div>
+        <div class="law-card">
+          <div class="card-top">
+            <svg class="scales" viewBox="0 0 80 80" fill="none" stroke="currentColor" stroke-width="1.4">
+              <path d="M40 12v52M26 67h28M20 20h40M20 20 9 42a12 12 0 0 0 22 0L20 20Zm40 0L49 42a12 12 0 0 0 22 0L60 20Z"/>
+            </svg>
+            <div>ПРАВО И СПРАВЕДЛИВОСТЬ</div>
+          </div>
+          <h3>Когда важен не просто совет, а конкретный результат</h3>
+          <div class="law-card-footer">
+            <div><strong>Юрий Иванов</strong>Юрист, Москва</div>
+            <div>01 / 04</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="stats">
+      <div class="container stats-grid">
+        <div class="stat"><strong>15 лет</strong><span>юридической практики</span></div>
+        <div class="stat"><strong>500+</strong><span>решённых правовых задач</span></div>
+        <div class="stat"><strong>98%</strong><span>клиентов рекомендуют</span></div>
+        <div class="stat"><strong>1 день</strong><span>до первой консультации</span></div>
+      </div>
+    </div>
+
+    <section class="services" id="services">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Направления работы</span>
+          <h2>Юридическая помощь<br>для ваших задач</h2>
+          <p>Предлагаю понятные решения без лишней теории. Сначала разбираемся в ситуации, затем выстраиваем стратегию.</p>
+        </div>
+        <div class="service-grid">
+          <article class="service">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 20V5h10l4 4v11H5Zm10-15v5h4M8 13h8M8 16h6"/></svg></div>
+            <h3>Гражданские споры</h3>
+            <p>Защита прав, взыскание задолженности, компенсации, наследственные и семейные вопросы.</p>
+          </article>
+          <article class="service">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20h16M6 20V8l6-4 6 4v12M9 12h6M9 16h6"/></svg></div>
+            <h3>Недвижимость</h3>
+            <p>Проверка документов, сопровождение сделок, споры о праве собственности и выселении.</p>
+          </article>
+          <article class="service">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 4 6v5c0 5 3.4 8.6 8 10 4.6-1.4 8-5 8-10V6l-8-3Z"/><path d="m8 12 2.5 2.5L16 9"/></svg></div>
+            <h3>Защита в суде</h3>
+            <p>Подготовка исков и отзывов, представительство в судах, обжалование решений.</p>
+          </article>
+          <article class="service">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4v16M5 8h14M7 8 3 15a4 4 0 0 0 8 0L7 8Zm10 0-4 7a4 4 0 0 0 8 0l-4-7Z"/></svg></div>
+            <h3>Трудовое право</h3>
+            <p>Восстановление на работе, споры с работодателем, защита при увольнении.</p>
+          </article>
+          <article class="service">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 4h10M6 8h12M5 12h14M4 16h16M3 20h18"/></svg></div>
+            <h3>Договоры</h3>
+            <p>Разработка, правовая экспертиза и корректировка договоров для бизнеса и частных лиц.</p>
+          </article>
+          <article class="service">
+            <div class="service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="m16 16 5 5M11 8v6M8 11h6"/></svg></div>
+            <h3>Правовая консультация</h3>
+            <p>Анализ ситуации, оценка перспектив и пошаговый план действий без непонятных формулировок.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="about" id="about">
+      <div class="container about-grid">
+        <div class="portrait">
+          <svg class="silhouette" viewBox="0 0 300 390" fill="currentColor">
+            <circle cx="150" cy="92" r="61"/>
+            <path d="M70 369c4-95 18-154 80-154s76 59 80 154H70Z"/>
+            <path d="m89 210 61 54 61-54 17 159H72l17-159Z" fill="#162750"/>
+            <path d="M150 214v154M116 259l34 25 34-25" fill="none" stroke="#cf9c51" stroke-width="4"/>
+          </svg>
+        </div>
+        <div class="about-copy">
+          <span class="eyebrow">О специалисте</span>
+          <h2>Юридическая поддержка, которой можно доверять</h2>
+          <p>Меня зовут Юрий Иванов. Я практикующий юрист и помогаю частным лицам и предпринимателям находить решения в ситуациях, где цена ошибки особенно высока.</p>
+          <p>В работе для меня важны честная оценка перспектив, внимание к деталям и постоянная связь с клиентом на каждом этапе.</p>
+          <ul class="check-list">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Объясняю сложные юридические вопросы простым языком</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Работаю конфиденциально и соблюдаю сроки</span></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/></svg><span>Предлагаю только те решения, в которых уверен</span></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="process" id="process">
+      <div class="container">
+        <div class="section-head">
+          <span class="eyebrow">Понятный процесс</span>
+          <h2>От вопроса<br>к решению</h2>
+        </div>
+        <div class="process-grid">
+          <div class="step"><div class="step-number">01 / ЗНАКОМСТВО</div><h3>Слушаю и разбираюсь</h3><p>Изучаю обстоятельства и документы, задаю важные вопросы.</p></div>
+          <div class="step"><div class="step-number">02 / СТРАТЕГИЯ</div><h3>Оцениваю перспективы</h3><p>Объясняю возможные варианты и формирую план действий.</p></div>
+          <div class="step"><div class="step-number">03 / РАБОТА</div><h3>Защищаю интересы</h3><p>Готовлю документы, веду переговоры и представляю вас.</p></div>
+          <div class="step"><div class="step-number">04 / РЕЗУЛЬТАТ</div><h3>Держу в курсе</h3><p>Сообщаю о каждом этапе и помогаю прийти к цели.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="container contact-grid">
+        <div>
+          <span class="eyebrow">Свяжитесь со мной</span>
+          <h2>Начните с консультации</h2>
+          <p class="muted">Опишите ситуацию в двух словах — я свяжусь с вами, чтобы определить следующий шаг.</p>
+          <div class="contact-info">
+            <a class="contact-item" href="tel:+74951234567"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M6.6 3.5 9 3l2 5-2.5 1.7a15 15 0 0 0 5.8 5.8L16 13l5 2-.5 2.4a3 3 0 0 1-3.4 2.4C10.4 18.7 5.3 13.6 4.2 6.9A3 3 0 0 1 6.6 3.5Z"/></svg><span><strong>+7 (495) 123-45-67</strong>ежедневно с 9:00 до 21:00</span></a>
+            <div class="contact-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg><span><strong>Москва, ул. Люблинская, д. 160</strong>приём по предварительной записи</span></div>
+            <a class="contact-item" href="mailto:info@ivanov-law.ru"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg><span><strong>info@ivanov-law.ru</strong>ответим в течение рабочего дня</span></a>
+          </div>
+        </div>
+        <form class="contact-form" id="contactForm">
+          <h3>Записаться на консультацию</h3>
+          <div class="form-row">
+            <div class="field"><label for="name">Ваше имя</label><input id="name" name="name" required placeholder="Иван Иванов"></div>
+            <div class="field"><label for="phone">Телефон</label><input id="phone" name="phone" required type="tel" placeholder="+7 (___) ___-__-__"></div>
+          </div>
+          <div class="field"><label for="message">Кратко опишите вопрос</label><textarea id="message" name="message" placeholder="Например: нужна помощь по договору..."></textarea></div>
+          <button class="btn form-submit" type="submit">Отправить заявку <span>→</span></button>
+          <p class="form-note">Нажимая кнопку, вы соглашаетесь на обработку персональных данных.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>© 2024 Юрий Иванов. Частная юридическая практика.</span>
+      <span>Москва · ул. Люблинская, д. 160</span>
+    </div>
+  </footer>
+  <div class="toast" id="toast">Заявка сохранена. Я свяжусь с вами в ближайшее время.</div>
+
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const navLinks = document.getElementById('navLinks');
+    menuBtn.addEventListener('click', () => navLinks.classList.toggle('open'));
+    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => navLinks.classList.remove('open')));
+
+    const form = document.getElementById('contactForm');
+    const toast = document.getElementById('toast');
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(form).entries());
+      const requests = JSON.parse(localStorage.getItem('lawyerRequests') || '[]');
+      requests.push({...data, date: new Date().toISOString()});
+      localStorage.setItem('lawyerRequests', JSON.stringify(requests));
+      form.reset();
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 4500);
+    });
+  </script>
+</body>
+</html>

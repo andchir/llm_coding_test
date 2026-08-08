@@ -65,7 +65,58 @@ def create_html_file(model_name, response_content, output_dir='output'):
     return filepath
 
 
-def save_token_usage(model_name, output_tokens, output_dir='output'):
+def load_usage_data(usage_path, prompt, currency='RUB'):
+    """Load usage data and migrate the old list format in memory."""
+    usage_data = {'prompt': prompt, 'currency': currency, 'results': []}
+    if not usage_path.exists():
+        return usage_data
+
+    try:
+        with open(usage_path, 'r', encoding='utf-8') as f:
+            loaded_data = json.load(f)
+    except (json.JSONDecodeError, OSError) as e:
+        print(f"  Warning: could not read {usage_path}: {e}; resetting it")
+        return usage_data
+
+    if isinstance(loaded_data, list):
+        # Backward compatibility with the original token_usage.json format.
+        usage_data['results'] = loaded_data
+    elif isinstance(loaded_data, dict) and isinstance(loaded_data.get('results'), list):
+        usage_data = loaded_data
+        usage_data['prompt'] = prompt
+        usage_data['currency'] = currency
+    else:
+        print(f"  Warning: {usage_path} has an unexpected format; resetting it")
+
+    return usage_data
+
+
+def write_usage_data(usage_path, usage_data):
+    """Atomically write shared usage data."""
+    temporary_path = usage_path.with_suffix('.json.tmp')
+    with open(temporary_path, 'w', encoding='utf-8') as f:
+        json.dump(usage_data, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+    temporary_path.replace(usage_path)
+
+
+def update_usage_prompt(prompt, output_dir='output', currency='RUB'):
+    """Create the usage file and update its shared prompt and currency."""
+    output_path = Path(output_dir)
+    output_path.mkdir(exist_ok=True)
+    usage_path = output_path / 'token_usage.json'
+    usage_data = load_usage_data(usage_path, prompt, currency)
+    write_usage_data(usage_path, usage_data)
+    return usage_path
+
+
+def save_token_usage(
+    model_name,
+    output_tokens,
+    output_dir='output',
+    prompt='',
+    currency='RUB',
+):
     """Save output token usage for a model to the shared JSON file.
 
     Existing prices are intentionally preserved because they are filled in
@@ -76,24 +127,15 @@ def save_token_usage(model_name, output_tokens, output_dir='output'):
     output_path.mkdir(exist_ok=True)
     usage_path = output_path / 'token_usage.json'
 
-    usage_data = []
-    if usage_path.exists():
-        try:
-            with open(usage_path, 'r', encoding='utf-8') as f:
-                loaded_data = json.load(f)
-            if isinstance(loaded_data, list):
-                usage_data = loaded_data
-            else:
-                print(f"  Warning: {usage_path} does not contain a JSON list; resetting it")
-        except (json.JSONDecodeError, OSError) as e:
-            print(f"  Warning: could not read {usage_path}: {e}; resetting it")
+    usage_data = load_usage_data(usage_path, prompt, currency)
+    results = usage_data['results']
 
     existing_entry = next(
-        (entry for entry in usage_data if entry.get('model') == model_name),
+        (entry for entry in results if entry.get('model') == model_name),
         None,
     )
     if existing_entry is None:
-        usage_data.append({
+        results.append({
             'model': model_name,
             'output_tokens': output_tokens,
             'price': 0,
@@ -102,11 +144,7 @@ def save_token_usage(model_name, output_tokens, output_dir='output'):
         existing_entry['output_tokens'] = output_tokens
         existing_entry.setdefault('price', 0)
 
-    temporary_path = usage_path.with_suffix('.json.tmp')
-    with open(temporary_path, 'w', encoding='utf-8') as f:
-        json.dump(usage_data, f, ensure_ascii=False, indent=2)
-        f.write('\n')
-    temporary_path.replace(usage_path)
+    write_usage_data(usage_path, usage_data)
 
     return usage_path
 
@@ -171,6 +209,7 @@ def main():
     system_prompt = os.getenv('SYSTEM_PROMPT')
     temperature = float(os.getenv('TEMPERATURE', '0.3'))
     folder_name = os.getenv('FOLDER_NAME', 'output')
+    currency = os.getenv('CURRENCY', 'RUB').strip() or 'RUB'
 
     # Validate required parameters
     if not base_url:
@@ -200,6 +239,10 @@ def main():
     print(f"Base URL: {base_url}")
     print(f"Prompt: {prompt}\n")
 
+    # Keep the shared prompt current even when every model is skipped.
+    usage_path = update_usage_prompt(prompt, folder_name, currency)
+    print(f"Usage data: {usage_path}\n")
+
     # Process each model
     for i, model in enumerate(models, 1):
         print(f"[{i}/{len(models)}] Processing model: {model}")
@@ -226,7 +269,13 @@ def main():
         filepath = create_html_file(model, cleaned_content, folder_name)
 
         # Store token usage in a shared JSON file.
-        usage_path = save_token_usage(model, output_tokens, folder_name)
+        usage_path = save_token_usage(
+            model,
+            output_tokens,
+            prompt=prompt,
+            output_dir=folder_name,
+            currency=currency,
+        )
 
         print(f"  → Created: {filepath}")
         print(f"  → Output tokens: {output_tokens} ({usage_path})")
