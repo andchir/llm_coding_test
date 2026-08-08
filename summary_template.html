@@ -20,6 +20,12 @@
     .stat strong { display: block; font-size: 22px; }
     .stat span { color: #68738a; font-size: 13px; }
     .table-wrap { overflow-x: auto; }
+    .table-toolbar { display: flex; align-items: center; justify-content: flex-end;
+                     gap: 10px; padding: 16px 24px; }
+    .table-toolbar label { color: #68738a; font-size: 13px; font-weight: 700; }
+    .table-toolbar select { min-height: 38px; padding: 7px 34px 7px 11px;
+                            border: 1px solid #cfd6e3; border-radius: 9px;
+                            background: white; color: #172033; font: inherit; }
     table { width: 100%; border-collapse: collapse; }
     th, td { padding: 16px 24px; border-top: 1px solid #e7ebf2; text-align: left; }
     th { color: #68738a; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; }
@@ -46,6 +52,13 @@
         <div class="stat"><strong>$total_tokens</strong><span>исходящих токенов</span></div>
         <div class="stat"><strong>$total_price $currency</strong><span>общая цена</span></div>
       </div>
+      <div class="table-toolbar">
+        <label for="result-sort">Сортировка</label>
+        <select id="result-sort">
+          <option value="price">По цене: сначала дорогие</option>
+          <option value="model">По названию модели</option>
+        </select>
+      </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>Модель</th><th>Исходящие токены</th><th>Цена</th><th>Валюта</th></tr></thead>
@@ -54,5 +67,28 @@
       </div>
     </section>
   </main>
+  <script>
+    (() => {
+      const select = document.querySelector('#result-sort');
+      const body = document.querySelector('tbody');
+      if (!select || !body) return;
+
+      const compareModels = (left, right) =>
+        left.dataset.model.localeCompare(right.dataset.model, 'ru', {
+          sensitivity: 'base',
+          numeric: true
+        });
+
+      select.addEventListener('change', () => {
+        const rows = Array.from(body.querySelectorAll('tr[data-model]'));
+        rows.sort((left, right) => {
+          if (select.value === 'model') return compareModels(left, right);
+          return Number(right.dataset.price) - Number(left.dataset.price)
+            || compareModels(left, right);
+        });
+        body.append(...rows);
+      });
+    })();
+  </script>
 </body>
 </html>

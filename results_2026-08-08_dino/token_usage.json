@@ -76,6 +76,11 @@
       "model": "anthropic/claude-fable-5",
       "output_tokens": 7195,
       "price": 38.4374596
+    },
+    {
+      "model": "moonshotai/kimi-k3",
+      "output_tokens": 32486,
+      "price": 77.5377326
     }
   ]
 }

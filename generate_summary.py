@@ -27,6 +27,16 @@ def format_price(value):
     return str(value)
 
 
+def numeric_price(value):
+    """Convert a JSON price to a number for stable sorting."""
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return float(value)
+    try:
+        return float(str(value).replace(',', '.'))
+    except (TypeError, ValueError):
+        return 0.0
+
+
 def load_summary_data(json_path):
     """Read and validate the current token usage schema."""
     with open(json_path, 'r', encoding='utf-8') as f:
@@ -46,7 +56,10 @@ def build_summary_html(data, template_text):
     currency = html.escape(str(data.get('currency', 'RUB')))
     results = sorted(
         data['results'],
-        key=lambda item: str(item.get('model', '')).casefold(),
+        key=lambda item: (
+            -numeric_price(item.get('price', 0)),
+            str(item.get('model', '')).casefold(),
+        ),
     )
     total_tokens = sum(
         item.get('output_tokens', 0)
@@ -62,13 +75,15 @@ def build_summary_html(data, template_text):
     rows = []
     for item in results:
         model = str(item.get('model', ''))
+        price = item.get('price', 0)
         filename = f'{sanitize_filename(model)}.html'
         href = quote(filename)
         rows.append(
-            '<tr>'
+            f'<tr data-model="{html.escape(model.casefold(), quote=True)}" '
+            f'data-price="{numeric_price(price)}">'
             f'<td><a href="{href}">{html.escape(model)}</a></td>'
             f'<td>{html.escape(str(item.get("output_tokens", 0)))}</td>'
-            f'<td>{html.escape(format_price(item.get("price", 0)))}</td>'
+            f'<td>{html.escape(format_price(price))}</td>'
             f'<td>{currency}</td>'
             '</tr>'
         )
