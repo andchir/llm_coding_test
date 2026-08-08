@@ -4,6 +4,7 @@ Script for running LLM API calls with different models.
 Creates HTML files with responses for each model.
 """
 
+import json
 import os
 import sys
 import requests
@@ -64,6 +65,52 @@ def create_html_file(model_name, response_content, output_dir='output'):
     return filepath
 
 
+def save_token_usage(model_name, output_tokens, output_dir='output'):
+    """Save output token usage for a model to the shared JSON file.
+
+    Existing prices are intentionally preserved because they are filled in
+    separately. A model has a single result file, so its usage entry is updated
+    instead of duplicated when the model is run again.
+    """
+    output_path = Path(output_dir)
+    output_path.mkdir(exist_ok=True)
+    usage_path = output_path / 'token_usage.json'
+
+    usage_data = []
+    if usage_path.exists():
+        try:
+            with open(usage_path, 'r', encoding='utf-8') as f:
+                loaded_data = json.load(f)
+            if isinstance(loaded_data, list):
+                usage_data = loaded_data
+            else:
+                print(f"  Warning: {usage_path} does not contain a JSON list; resetting it")
+        except (json.JSONDecodeError, OSError) as e:
+            print(f"  Warning: could not read {usage_path}: {e}; resetting it")
+
+    existing_entry = next(
+        (entry for entry in usage_data if entry.get('model') == model_name),
+        None,
+    )
+    if existing_entry is None:
+        usage_data.append({
+            'model': model_name,
+            'output_tokens': output_tokens,
+            'price': 0,
+        })
+    else:
+        existing_entry['output_tokens'] = output_tokens
+        existing_entry.setdefault('price', 0)
+
+    temporary_path = usage_path.with_suffix('.json.tmp')
+    with open(temporary_path, 'w', encoding='utf-8') as f:
+        json.dump(usage_data, f, ensure_ascii=False, indent=2)
+        f.write('\n')
+    temporary_path.replace(usage_path)
+
+    return usage_path
+
+
 def call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature=0.3):
     """Make API call to LLM service."""
     headers = {
@@ -96,15 +143,20 @@ def call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature=0.
 
         data = response.json()
 
-        # Extract content from response
+        # Extract content and output token count from response
         if 'choices' in data and len(data['choices']) > 0:
             content = data['choices'][0]['message']['content']
-            return content
+            usage = data.get('usage') or {}
+            output_tokens = usage.get(
+                'completion_tokens',
+                usage.get('output_tokens', 0),
+            )
+            return content, output_tokens
         else:
-            return f"Error: Unexpected response format: {data}"
+            return f"Error: Unexpected response format: {data}", 0
 
     except requests.exceptions.RequestException as e:
-        return f"Error calling API: {str(e)}"
+        return f"Error calling API: {str(e)}", 0
 
 
 def main():
@@ -158,7 +210,14 @@ def main():
             continue
 
         # Call API
-        response_content = call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature)
+        response_content, output_tokens = call_llm_api(
+            base_url,
+            api_key,
+            model,
+            prompt,
+            system_prompt,
+            temperature,
+        )
 
         # Clean Markdown code blocks from response
         cleaned_content = clean_markdown_code_blocks(response_content)
@@ -166,7 +225,11 @@ def main():
         # Create HTML file
         filepath = create_html_file(model, cleaned_content, folder_name)
 
+        # Store token usage in a shared JSON file.
+        usage_path = save_token_usage(model, output_tokens, folder_name)
+
         print(f"  → Created: {filepath}")
+        print(f"  → Output tokens: {output_tokens} ({usage_path})")
 
     print("\nAll models processed successfully!")
 

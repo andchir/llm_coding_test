@@ -37,7 +37,9 @@ The script will:
 1. Load configuration from `.env` file
 2. Process each model sequentially
 3. Create HTML files in the `output/` directory
-4. Name each file according to the model name (with `/` replaced by `_`)
+4. Save output token counts to `output/token_usage.json`; each entry contains
+   the model name, output token count, and a `price` field initialized to `0`
+5. Name each HTML file according to the model name (with `/` replaced by `_`)
 
 ## Example
 
