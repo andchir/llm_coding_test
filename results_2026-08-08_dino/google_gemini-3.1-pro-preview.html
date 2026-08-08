@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dino Run</title>
+<style>
+    :root {
+        --bg-color: #121212;
+        --game-bg: #1e1e1e;
+        --primary: #00d2d3;
+        --primary-hover: #48dbfb;
+        --danger: #ff6b6b;
+        --text: #c8d6e5;
+        --ground: #576574;
+    }
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+    body {
+        margin: 0; padding: 0;
+        background-color: var(--bg-color);
+        color: var(--text);
+        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        display: flex; justify-content: center; align-items: center;
+        height: 100vh; overflow: hidden;
+        touch-action: none;
+    }
+    #game-wrapper {
+        position: relative;
+        width: 100%; max-width: 800px;
+        aspect-ratio: 21 / 9;
+        background: var(--game-bg);
+        border-radius: 12px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.6), inset 0 0 20px rgba(0,0,0,0.5);
+        overflow: hidden;
+    }
+    @media (max-aspect-ratio: 21/9) {
+        #game-wrapper { aspect-ratio: 16 / 9; border-radius: 0; }
+    }
+    canvas { display: block; width: 100%; height: 100%; }
+    
+    #ui-layer {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; display: flex; flex-direction: column;
+    }
+    .hud {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 15px 25px; z-index: 10;
+    }
+    .score-container {
+        font-size: 1.2rem; font-weight: 700; letter-spacing: 1px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        display: flex; flex-direction: column; gap: 5px;
+    }
+    .score-container span { color: var(--primary); font-variant-numeric: tabular-nums; }
+    .hi-score { font-size: 0.9rem; color: #8395a7; }
+    
+    #lives-container { display: flex; gap: 8px; }
+    .heart {
+        width: 24px; height: 24px; fill: var(--danger);
+        filter: drop-shadow(0 2px 4px rgba(255, 107, 107, 0.4));
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .heart.lost { fill: #333; filter: none; transform: scale(0.7); opacity: 0.5; }
+    
+    .screen {
+        position: absolute; inset: 0;
+        background: rgba(18, 18, 18, 0.85);
+        backdrop-filter: blur(4px);
+        display: flex; flex-direction: column; justify-content: center; align-items: center;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.4s ease; z-index: 20;
+    }
+    .screen.active { opacity: 1; pointer-events: auto; }
+    
+    h1 {
+        margin: 0 0 10px; font-size: clamp(2.5rem, 5vw, 4rem);
+        color: var(--primary); text-transform: uppercase; letter-spacing: 4px;
+        text-shadow: 0 0 20px rgba(0, 210, 211, 0.5);
+    }
+    p { margin: 0 0 30px; font-size: 1.2rem; color: #a4b0be; text-align: center; }
+    
+    button {
+        pointer-events: auto;
+        background: transparent; color: var(--primary);
+        border: 2px solid var(--primary);
+        padding: 12px 40px; font-size: 1.2rem; font-weight: bold;
+        border-radius: 30px; cursor: pointer; text-transform: uppercase; letter-spacing: 2px;
+        transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    button::before {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: var(--primary); z-index: -1;
+        transform: scaleX(0); transform-origin: right; transition: transform 0.3s ease;
+    }
+    button:hover { color: var(--bg-color); box-shadow: 0 0 20px rgba(0, 210, 211, 0.6); border-color: var(--primary-hover); }
+    button:hover::before { transform: scaleX(1); transform-origin: left; background: var(--primary-hover); }
+    button:active { transform: scale(0.95); }
+
+    .damage-overlay {
+        position: absolute; inset: 0; background: rgba(255, 107, 107, 0.3);
+        opacity: 0; pointer-events: none; transition: opacity 0.1s; z-index: 5;
+    }
+    .damage-overlay.flash { opacity: 1; }
+</style>
+</head>
+<body>
+
+<div id="game-wrapper">
+    <div id="ui-layer">
+        <div class="hud">
+            <div class="score-container">
+                <div>SCORE <span id="score">00000</span></div>
+                <div class="hi-score">HI <span id="hi-score">00000</span></div>
+            </div>
+            <div id="lives-container"></div>
+        </div>
+        
+        <div id="start-screen" class="screen active">
+            <h1>NEON RUN</h1>
+            <p>Нажми или коснись экрана, чтобы прыгать</p>
+            <button id="start-btn">СТАРТ</button>
+        </div>
+        
+        <div id="game-over-screen" class="screen">
+            <h1 style="color: var(--danger); text-shadow: 0 0 20px rgba(255, 107, 107, 0.5);">ПОТРАЧЕНО</h1>
+            <p>Итоговый счет: <span id="final-score" style="color: var(--primary); font-weight: bold;">0</span></p>
+            <button id="restart-btn">ЗАНОВО</button>
+        </div>
+    </div>
+    <div id="damage-flash" class="damage-overlay"></div>
+    <canvas id="gameCanvas" width="1000" height="400"></canvas>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // UI Elements
+    const scoreEl = document.getElementById('score');
+    const hiScoreEl = document.getElementById('hi-score');
+    const finalScoreEl = document.getElementById('final-score');
+    const startScreen = document.getElementById('start-screen');
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const livesContainer = document.getElementById('lives-container');
+    const damageFlash = document.getElementById('damage-flash');
+
+    // Game Constants
+    const GRAVITY = 0.7;
+    const JUMP_FORCE = -14;
+    const GROUND_HEIGHT = 40;
+    const MAX_LIVES = 3;
+    const INITIAL_SPEED = 7;
+    const SPEED_INCREMENT = 0.002;
+
+    // Game Variables
+    let dino, obstacles, particles;
+    let score = 0;
+    let highScore = localStorage.getItem('dinoHighScore') || 0;
+    let lives = MAX_LIVES;
+    let gameSpeed = INITIAL_SPEED;
+    let frameCount = 0;
+    let isPlaying = false;
+    let animationId;
+
+    // Format score
+    const formatScore = (s) => Math.floor(s).toString().padStart(5, '0');
+    hiScoreEl.innerText = formatScore(highScore);
+
+    // SVG Heart Path
+    const heartSVG = `<svg viewBox="0 0 32 29.6" class="heart"><path d="M23.6,0c-3.4,0-6.3,2.7-7.6,5.6C14.7,2.7,11.8,0,8.4,0C3.8,0,0,3.8,0,8.4c0,9.4,9.5,11.9,16,21.2c6.1-9.3,16-12.1,16-21.2C32,3.8,28.2,0,23.6,0z"/></svg>`;
+
+    function initLivesUI() {
+        livesContainer.innerHTML = '';
+        for(let i=0; i<MAX_LIVES; i++) {
+            livesContainer.insertAdjacentHTML('beforeend', heartSVG);
+        }
+    }
+
+    function updateLivesUI() {
+        const hearts = livesContainer.querySelectorAll('.heart');
+        hearts.forEach((heart, index) => {
+            if (index >= lives) heart.classList.add('lost');
+            else heart.classList.remove('lost');
+        });
+    }
+
+    class Dino {
+        constructor() {
+            this.w = 44;
+            this.h = 48;
+            this.x = 60;
+            this.y = canvas.height - GROUND_HEIGHT - this.h;
+            this.dy = 0;
+            this.isGrounded = true;
+            this.invulnTimer = 0;
+            this.runFrame = 0;
+        }
+
+        jump() {
+            if (this.isGrounded) {
+                this.dy = JUMP_FORCE;
+                this.isGrounded = false;
+                createParticles(this.x + this.w/2, this.y + this.h, 5, '#fff');
+            }
+        }
+
+        update() {
+            this.dy += GRAVITY;
+            this.y += this.dy;
+
+            if (this.y >= canvas.height - GROUND_HEIGHT - this.h) {
+                this.y = canvas.height - GROUND_HEIGHT - this.h;
+                this.dy = 0;
+                this.isGrounded = true;
+            }
+
+            if (this.invulnTimer > 0) this.invulnTimer--;
+            if (this.isGrounded && isPlaying) this.runFrame += 0.2;
+        }
+
+        draw() {
+            if (this.invulnTimer > 0 && Math.floor(this.invulnTimer / 5) % 2 === 0) return;
+
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            
+            // Silhouette drawing
+            ctx.fillStyle = '#00d2d3';
+            ctx.shadowColor = '#00d2d3';
+            ctx.shadowBlur = 10;
+
+            ctx.beginPath();
+            // Body
+            ctx.roundRect(10, 15, 24, 25, 5);
+            // Head
+            ctx.roundRect(20, 0, 24, 18, 4);
+            // Snout
+            ctx.rect(30, 5, 14, 10);
+            // Tail
+            ctx.moveTo(15, 30);
+            ctx.lineTo(0, 20);
+            ctx.lineTo(10, 40);
+            ctx.fill();
+
+            // Eye
+            ctx.fillStyle = '#1e1e1e';
+            ctx.shadowBlur = 0;
+            ctx.fillRect(32, 4, 4, 4);
+
+            // Legs animation
+            ctx.fillStyle = '#00d2d3';
+            ctx.shadowBlur = 10;
+            let legOffset1 = this.isGrounded ? Math.sin(this.runFrame) * 5 : 0;
+            let legOffset2 = this.isGrounded ? Math.sin(this.runFrame + Math.PI) * 5 : -5;
+            
+            ctx.beginPath();
+            ctx.roundRect(14, 35 + legOffset1, 6, 13, 3);
+            ctx.roundRect(24, 35 + legOffset2, 6, 13, 3);
+            ctx.fill();
+
+            ctx.restore();
+        }
+    }
+
+    class Obstacle {
+        constructor() {
+            this.w = 30 + Math.random() * 20;
+            this.h = 40 + Math.random() * 35;
+            this.x = canvas.width;
+            this.y = canvas.height - GROUND_HEIGHT - this.h;
+            this.type = Math.random() > 0.5 ? 1 : 2;
+        }
+
+        update() {
+            this.x -= gameSpeed;
+        }
+
+        draw() {
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.fillStyle = '#ff6b6b';
+            ctx.shadowColor = '#ff6b6b';
+            ctx.shadowBlur = 10;
+
+            if (this.type === 1) {
+                // Single cactus
+                ctx.beginPath();
+                ctx.roundRect(this.w/2 - 8, 0, 16, this.h, 8);
+                ctx.roundRect(0, this.h/2 - 10, 12, 20, 5);
+                ctx.roundRect(this.w - 12, this.h/2 - 20, 12, 15, 5);
+                ctx.fill();
+            } else {
+                // Cluster
+                ctx.beginPath();
+                ctx.moveTo(0, this.h);
+                ctx.lineTo(this.w/2, 0);
+                ctx.lineTo(this.w, this.h);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+    }
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y;
+            this.vx = (Math.random() - 0.5) * 4;
+            this.vy = (Math.random() - 1) * 4;
+            this.life = 1;
+            this.color = color;
+            this.size = Math.random() * 3 + 1;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            this.life -= 0.05;
+        }
+        draw() {
+            ctx.globalAlpha = Math.max(0, this.life);
+            ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    function createParticles(x, y, count, color) {
+        for(let i=0; i<count; i++) particles.push(new Particle(x, y, color));
+    }
+
+    function resetGame() {
+        dino = new Dino();
+        obstacles = [];
+        particles = [];
+        score = 0;
+        lives = MAX_LIVES;
+        gameSpeed = INITIAL_SPEED;
+        frameCount = 0;
+        initLivesUI();
+        scoreEl.innerText = formatScore(0);
+    }
+
+    function startGame() {
+        resetGame();
+        startScreen.classList.remove('active');
+        gameOverScreen.classList.remove('active');
+        isPlaying = true;
+        gameLoop();
+    }
+
+    function gameOver() {
+        isPlaying = false;
+        cancelAnimationFrame(animationId);
+        
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem('dinoHighScore', highScore);
+            hiScoreEl.innerText = formatScore(highScore);
+        }
+        
+        finalScoreEl.innerText = formatScore(score);
+        gameOverScreen.classList.add('active');
+    }
+
+    function handleInput(e) {
+        if (e.type === 'keydown' && (e.code !== 'Space' && e.code !== 'ArrowUp')) return;
+        if (e.type === 'keydown') e.preventDefault();
+        
+        if (isPlaying) {
+            dino.jump();
+        } else if (gameOverScreen.classList.contains('active')) {
+            startGame();
+        } else if (startScreen.classList.contains('active')) {
+            startGame();
+        }
+    }
+
+    // Event Listeners
+    window.addEventListener('keydown', handleInput);
+    window.addEventListener('touchstart', (e) => { if(e.target.tagName !== 'BUTTON') { e.preventDefault(); handleInput(e); } }, {passive: false});
+    window.addEventListener('mousedown', (e) => { if(e.target.tagName !== 'BUTTON') handleInput(e); });
+    startBtn.addEventListener('click', startGame);
+    restartBtn.addEventListener('click', startGame);
+
+    function checkCollision(rect1, rect2) {
+        // Slightly smaller hitbox for fairness
+        const marginX = 10;
+        const marginY = 10;
+        return (
+            rect1.x + marginX < rect2.x + rect2.w &&
+            rect1.x + rect1.w - marginX > rect2.x &&
+            rect1.y + marginY < rect2.y + rect2.h &&
+            rect1.y + rect1.h > rect2.y
+        );
+    }
+
+    function drawGround() {
+        ctx.fillStyle = '#2d3436';
+        ctx.fillRect(0, canvas.height - GROUND_HEIGHT, canvas.width, GROUND_HEIGHT);
+        
+        // Ground line
+        ctx.strokeStyle = '#00d2d3';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = '#00d2d3';
+        ctx.beginPath();
+        ctx.moveTo(0, canvas.height - GROUND_HEIGHT);
+        ctx.lineTo(canvas.width, canvas.height - GROUND_HEIGHT);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Moving ground dots
+        ctx.fillStyle = '#636e72';
+        for(let i=0; i<20; i++) {
+            let x = ((i * 50) - (frameCount * gameSpeed * 0.5)) % canvas.width;
+            if (x < 0) x += canvas.width;
+            ctx.fillRect(x, canvas.height - GROUND_HEIGHT + 10 + (i%3)*10, 4, 2);
+        }
+    }
+
+    function gameLoop() {
+        if (!isPlaying) return;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        drawGround();
+
+        // Spawn Obstacles
+        if (frameCount % Math.floor(Math.random() * 60 + 70) === 0 && frameCount > 60) {
+            obstacles.push(new Obstacle());
+        }
+
+        // Update & Draw Obstacles
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            let obs = obstacles[i];
+            obs.update();
+            obs.draw();
+
+            // Collision
+            if (dino.invulnTimer === 0 && checkCollision(dino, obs)) {
+                lives--;
+                updateLivesUI();
+                createParticles(dino.x + dino.w/2, dino.y + dino.h/2, 20, '#ff6b6b');
+                
+                damageFlash.classList.add('flash');
+                setTimeout(() => damageFlash.classList.remove('flash'), 100);
+
+                if (lives <= 0) {
+                    gameOver();
+                    return; // Stop loop immediately
+                } else {
+                    dino.invulnTimer = 90; // 1.5s at 60fps
+                }
+            }
+
+            if (obs.x + obs.w < 0) obstacles.splice(i, 1);
+        }
+
+        // Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update();
+            particles[i].draw();
+            if (particles[i].life <= 0) particles.splice(i, 1);
+        }
+
+        dino.update();
+        dino.draw();
+
+        // Score & Speed
+        score += 0.1;
+        if (frameCount % 10 === 0) scoreEl.innerText = formatScore(score);
+        gameSpeed += SPEED_INCREMENT;
+        frameCount++;
+
+        animationId = requestAnimationFrame(gameLoop);
+    }
+
+    // Initial draw
+    initLivesUI();
+    dino = new Dino();
+    drawGround();
+    dino.draw();
+
+</script>
+</body>
+</html>

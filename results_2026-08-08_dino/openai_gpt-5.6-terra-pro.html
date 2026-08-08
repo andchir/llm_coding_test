@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Дино Прыжок</title>
+<style>
+  :root {
+    --ink: #182435;
+    --cream: #fff4d7;
+    --sun: #ffca58;
+    --orange: #f28b48;
+    --green: #42a66c;
+    --red: #e95a58;
+    --blue: #4ca8cb;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    color: var(--ink);
+    font-family: Arial, Helvetica, sans-serif;
+    background:
+      radial-gradient(circle at 10% 15%, rgba(255,255,255,.72) 0 3px, transparent 4px),
+      radial-gradient(circle at 74% 20%, rgba(255,255,255,.6) 0 5px, transparent 6px),
+      linear-gradient(155deg, #8ed8e9, #d5f1df 78%);
+  }
+
+  .app {
+    width: min(940px, 100%);
+    height: min(620px, 100dvh);
+    padding: clamp(12px, 2.5vw, 24px);
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 900;
+    font-size: clamp(19px, 3vw, 27px);
+    letter-spacing: -1px;
+  }
+
+  .brand-mark {
+    width: 37px;
+    height: 37px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    color: white;
+    background: var(--green);
+    box-shadow: 0 4px 0 #28744b;
+    transform: rotate(-5deg);
+  }
+
+  .brand-mark svg { width: 24px; height: 24px; fill: currentColor; }
+
+  .stats {
+    display: flex;
+    gap: 8px;
+  }
+
+  .stat {
+    min-width: 88px;
+    padding: 8px 11px;
+    border: 2px solid rgba(24,36,53,.12);
+    border-radius: 13px;
+    background: rgba(255,255,255,.66);
+    text-align: center;
+    box-shadow: 0 3px 0 rgba(24,36,53,.1);
+  }
+
+  .stat small {
+    display: block;
+    color: #607085;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .7px;
+  }
+
+  .stat strong {
+    display: block;
+    font-size: 18px;
+    line-height: 20px;
+  }
+
+  .lives {
+    display: flex;
+    justify-content: center;
+    gap: 3px;
+    height: 20px;
+    align-items: center;
+  }
+
+  .heart {
+    width: 18px;
+    height: 18px;
+    fill: var(--red);
+    filter: drop-shadow(0 1px 0 #b84141);
+    transition: opacity .25s, transform .25s, filter .25s;
+  }
+
+  .heart.lost {
+    opacity: .22;
+    transform: scale(.72);
+    filter: grayscale(1);
+  }
+
+  .game-card {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    border: 3px solid rgba(24,36,53,.16);
+    border-radius: 24px;
+    background: #bdeafa;
+    box-shadow: 0 8px 0 rgba(24,36,53,.14), inset 0 -5px 0 rgba(255,255,255,.25);
+  }
+
+  canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: pointer;
+  }
+
+  .hint {
+    position: absolute;
+    z-index: 2;
+    bottom: 18px;
+    left: 50%;
+    translate: -50% 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    width: max-content;
+    max-width: calc(100% - 30px);
+    padding: 8px 13px;
+    border-radius: 99px;
+    color: #526173;
+    background: rgba(255,255,255,.7);
+    font-size: 12px;
+    font-weight: 800;
+    pointer-events: none;
+    transition: opacity .3s, transform .3s;
+  }
+
+  .hint.hidden {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  .key {
+    display: inline-grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    border: 1px solid #b3c2cb;
+    border-bottom-width: 3px;
+    border-radius: 5px;
+    color: var(--ink);
+    background: white;
+    font-size: 11px;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    padding: 22px;
+    background: rgba(24,36,53,.23);
+    backdrop-filter: blur(3px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .28s;
+  }
+
+  .overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .modal {
+    width: min(360px, 100%);
+    padding: 28px 24px 23px;
+    border: 3px solid var(--ink);
+    border-radius: 22px;
+    text-align: center;
+    background: var(--cream);
+    box-shadow: 0 8px 0 var(--ink);
+    transform: translateY(12px) scale(.96);
+    transition: transform .3s cubic-bezier(.2,1.3,.4,1);
+  }
+
+  .overlay.show .modal { transform: translateY(0) scale(1); }
+
+  .modal-icon {
+    width: 72px;
+    height: 72px;
+    margin: -52px auto 12px;
+    display: grid;
+    place-items: center;
+    border: 3px solid var(--ink);
+    border-radius: 50%;
+    color: white;
+    background: var(--orange);
+    box-shadow: 0 4px 0 var(--ink);
+  }
+
+  .modal-icon svg { width: 40px; height: 40px; fill: currentColor; }
+
+  h1 {
+    margin: 0 0 7px;
+    font-size: 28px;
+    letter-spacing: -1px;
+  }
+
+  .modal p {
+    margin: 0 0 19px;
+    color: #5e6975;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+
+  .restart {
+    width: 100%;
+    border: 0;
+    border-bottom: 4px solid #b45b28;
+    border-radius: 13px;
+    padding: 13px 16px 10px;
+    color: white;
+    background: var(--orange);
+    font: inherit;
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: background .2s, transform .15s, filter .2s;
+  }
+
+  .restart:hover { background: #e5773e; filter: brightness(1.04); }
+  .restart:active { transform: translateY(3px); border-bottom-width: 1px; }
+
+  .footer {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    color: rgba(24,36,53,.65);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  @media (max-width: 520px) {
+    .app { padding: 10px; gap: 10px; }
+    .topbar { align-items: stretch; }
+    .brand { font-size: 18px; gap: 7px; }
+    .brand-mark { width: 32px; height: 32px; border-radius: 10px; }
+    .stats { gap: 5px; }
+    .stat { min-width: 68px; padding: 5px 7px; border-radius: 10px; }
+    .stat strong { font-size: 15px; line-height: 17px; }
+    .stat small { font-size: 8px; }
+    .game-card { border-radius: 18px; }
+    .hint { bottom: 12px; font-size: 10px; padding: 6px 9px; }
+    .footer { font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M15 13h27v7h8v9h-8v6h9v11H40v8h-9V43H19v11H8V39c0-9 5-14 12-16v-4h-5zm10 15h6v7h-6zm13 0h5v7h-5z"/></svg>
+      </span>
+      <span>ДИНО-ПРЫЖОК</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <small>СЧЁТ</small>
+        <strong id="score">0000</strong>
+      </div>
+      <div class="stat">
+        <small>ЖИЗНИ</small>
+        <div class="lives" id="lives"></div>
+      </div>
+      <div class="stat">
+        <small>РЕКОРД</small>
+        <strong id="best">0000</strong>
+      </div>
+    </div>
+  </header>
+
+  <section class="game-card" aria-label="Игровое поле">
+    <canvas id="game"></canvas>
+    <div class="hint" id="hint"><span class="key">ПРОБЕЛ</span> или коснитесь экрана, чтобы прыгнуть</div>
+    <div class="overlay" id="overlay">
+      <div class="modal">
+        <div class="modal-icon">
+          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M12 10h40v9H12zm4 13h32v31H16zm7 6v19h7V29zm11 0v19h7V29z"/></svg>
+        </div>
+        <h1>Забег окончен!</h1>
+        <p id="result">Ваш счёт: 0</p>
+        <button class="restart" id="restart">Играть снова</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">Прыгай выше кактусов · У тебя 3 жизни</div>
+</main>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const livesEl = document.getElementById('lives');
+  const hint = document.getElementById('hint');
+  const overlay = document.getElementById('overlay');
+  const result = document.getElementById('result');
+  const restart = document.getElementById('restart');
+
+  let w = 0, h = 0, dpr = 1, ground = 0;
+  let last = 0, running = true, started = false;
+  let score = 0, best = Number(localStorage.getItem('dinoJumpBest') || 0);
+  let lives = 3, speed = 350, spawnTimer = 1.15, shake = 0;
+  let obstacles = [], clouds = [], dust = [];
+
+  const dino = { x: 0, y: 0, width: 48, height: 53, vy: 0, grounded: true, invincible: 0, leg: 0 };
+
+  function heartSVG(lost) {
+    return `<svg class="heart ${lost ? 'lost' : ''}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21S3 15.4 3 8.8C3 5.6 5.2 3.5 8.2 3.5c1.7 0 3.1.8 3.8 2 1-1.2 2.3-2 4-2 3 0 5.2 2.1 5.2 5.3C21.2 15.4 12 21 12 21z"/></svg>`;
+  }
+
+  function updateUI() {
+    scoreEl.textContent = String(Math.floor(score)).padStart(4, '0');
+    bestEl.textContent = String(best).padStart(4, '0');
+    livesEl.innerHTML = [0, 1, 2].map(i => heartSVG(i >= lives)).join('');
+  }
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = rect.width;
+    h = rect.height;
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ground = h * 0.78;
+    dino.x = Math.max(36, w * 0.14);
+    if (dino.grounded) dino.y = ground - dino.height;
+    if (!clouds.length) {
+      clouds = [
+        { x: w * .18, y: h * .19, s: .82 },
+        { x: w * .63, y: h * .12, s: 1.18 },
+        { x: w * .88, y: h * .32, s: .62 }
+      ];
+    }
+  }
+
+  function reset() {
+    score = 0;
+    lives = 3;
+    speed = 350;
+    spawnTimer = 1.05;
+    obstacles = [];
+    dust = [];
+    dino.y = ground - dino.height;
+    dino.vy = 0;
+    dino.grounded = true;
+    dino.invincible = 0;
+    running = true;
+    started = false;
+    overlay.classList.remove('show');
+    hint.classList.remove('hidden');
+    updateUI();
+  }
+
+  function jump() {
+    if (!running) return;
+    if (!started) {
+      started = true;
+      hint.classList.add('hidden');
+    }
+    if (dino.grounded) {
+      dino.vy = -Math.max(560, h * 1.42);
+      dino.grounded = false;
+      for (let i = 0; i < 7; i++) dust.push({ x: dino.x + 16, y: ground - 4, vx: -40 - Math.random() * 75, vy: -15 - Math.random() * 38, life: .35 + Math.random() * .18, size: 2 + Math.random() * 3 });
+    }
+  }
+
+  function spawn() {
+    const tall = Math.random() > .52;
+    const width = tall ? 27 : 46;
+    const height = tall ? 57 : 39;
+    obstacles.push({ x: w + 30, y: ground - height, width, height, variant: tall ? 1 : 2, hit: false });
+  }
+
+  function collide(o) {
+    const padX = 7, padY = 4;
+    return dino.x + padX < o.x + o.width - 3 &&
+      dino.x + dino.width - padX > o.x + 3 &&
+      dino.y + padY < o.y + o.height &&
+      dino.y + dino.height - 3 > o.y;
+  }
+
+  function hit() {
+    if (dino.invincible > 0) return;
+    lives--;
+    dino.invincible = 1.25;
+    shake = .34;
+    updateUI();
+    if (lives <= 0) {
+      running = false;
+      if (Math.floor(score) > best) {
+        best = Math.floor(score);
+        localStorage.setItem('dinoJumpBest', best);
+      }
+      updateUI();
+      result.textContent = `Ваш счёт: ${Math.floor(score)} · Рекорд: ${best}`;
+      setTimeout(() => overlay.classList.add('show'), 260);
+    }
+  }
+
+  function update(dt) {
+    if (!running) return;
+
+    clouds.forEach(c => {
+      c.x -= speed * .045 * c.s * dt;
+      if (c.x < -100) c.x = w + 100;
+    });
+
+    if (!started) return;
+
+    score += dt * 10;
+    speed = Math.min(650, 350 + score * 2.1);
+    dino.vy += 1650 * dt;
+    dino.y += dino.vy * dt;
+
+    if (dino.y >= ground - dino.height) {
+      dino.y = ground - dino.height;
+      dino.vy = 0;
+      dino.grounded = true;
+    }
+
+    dino.leg += dt * (dino.grounded ? speed * .055 : 2);
+    dino.invincible = Math.max(0, dino.invincible - dt);
+    shake = Math.max(0, shake - dt);
+
+    spawnTimer -= dt;
+    if (spawnTimer <= 0) {
+      spawn();
+      spawnTimer = Math.max(.72, 1.35 - score * .006) + Math.random() * .5;
+    }
+
+    obstacles.forEach(o => {
+      o.x -= speed * dt;
+      if (!o.hit && collide(o)) {
+        o.hit = true;
+        hit();
+      }
+    });
+    obstacles = obstacles.filter(o => o.x + o.width > -20);
+
+    dust.forEach(p => {
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 90 * dt;
+      p.life -= dt;
+    });
+    dust = dust.filter(p => p.life > 0);
+    updateUI();
+  }
+
+  function rr(x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.roundRect(x, y, width, height, radius);
+  }
+
+  function drawCloud(x, y, s) {
+    ctx.save();
+    ctx.globalAlpha = .75;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(x, y, 13 * s, 0, Math.PI * 2);
+    ctx.arc(x + 15 * s, y - 8 * s, 18 * s, 0, Math.PI * 2);
+    ctx.arc(x + 34 * s, y, 14 * s, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(x - 11 * s, y, 58 * s, 12 * s);
+    ctx.restore();
+  }
+
+  function drawCactus(o) {
+    ctx.save();
+    ctx.translate(o.x, o.y);
+    ctx.fillStyle = o.hit ? '#db7a55' : '#339f62';
+    ctx.strokeStyle = '#1f6d45';
+    ctx.lineWidth = 2.5;
+    if (o.variant === 1) {
+      rr(7, 0, 15, o.height, 7); ctx.fill(); ctx.stroke();
+      rr(0, 20, 10, 18, 5); ctx.fill(); ctx.stroke();
+      ctx.fillRect(7, 30, 6, 8);
+      rr(19, 12, 10, 17, 5); ctx.fill(); ctx.stroke();
+      ctx.fillRect(17, 22, 7, 8);
+    } else {
+      rr(14, 8, 16, o.height - 8, 7); ctx.fill(); ctx.stroke();
+      rr(2, 18, 12, 15, 5); ctx.fill(); ctx.stroke();
+      ctx.fillRect(10, 26, 7, 8);
+      rr(30, 6, 12, 21, 5); ctx.fill(); ctx.stroke();
+      ctx.fillRect(27, 17, 8, 8);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(o.variant === 1 ? 12 : 20, 8);
+    ctx.lineTo(o.variant === 1 ? 12 : 20, o.height - 7);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawDino() {
+    const blink = dino.invincible > 0 && Math.floor(dino.invincible * 13) % 2 === 0;
+    if (blink) return;
+    const x = dino.x, y = dino.y;
+    const legOffset = dino.grounded ? Math.sin(dino.leg) * 4 : 0;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = '#45ad72';
+    ctx.strokeStyle = '#176241';
+    ctx.lineWidth = 2.7;
+
+    rr(4, 21, 31, 24, 8); ctx.fill(); ctx.stroke();
+    rr(22, 2, 27, 29, 8); ctx.fill(); ctx.stroke();
+    rr(0, 27, 10, 11, 5); ctx.fill(); ctx.stroke();
+    rr(29, 36, 9, 17 + legOffset, 4); ctx.fill(); ctx.stroke();
+    rr(13, 38, 9, 15 - legOffset, 4); ctx.fill(); ctx.stroke();
+
+    ctx.fillStyle = '#176241';
+    rr(6, 49 + legOffset, 16, 5, 2); ctx.fill();
+    rr(26, 50 - legOffset, 17, 5, 2); ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(40, 10, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#172334';
+    ctx.beginPath(); ctx.arc(41.5, 10.5, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(45, 22, 1.5, 0, Math.PI * 2); ctx.fill();
+
+    ctx.strokeStyle = '#176241';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(27, 25); ctx.lineTo(20, 28); ctx.lineTo(16, 34);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+    const shift = shake > 0 ? (Math.random() - .5) * 8 * (shake / .34) : 0;
+    ctx.save();
+    ctx.translate(shift, 0);
+
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#bceafa');
+    sky.addColorStop(1, '#e5f5ce');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.fillStyle = '#ffd165';
+    ctx.beginPath();
+    ctx.arc(w * .82, h * .18, Math.min(40, w * .06), 0, Math.PI * 2);
+    ctx.fill();
+
+    clouds.forEach(c => drawCloud(c.x, c.y, c.s));
+
+    ctx.fillStyle = '#a6d87a';
+    ctx.beginPath();
+    ctx.moveTo(0, ground - 25);
+    for (let x = 0; x <= w + 30; x += 30) {
+      ctx.lineTo(x, ground - 27 - Math.sin(x * .045) * 8);
+    }
+    ctx.lineTo(w, ground + 8); ctx.lineTo(0, ground + 8); ctx.fill();
+
+    ctx.fillStyle = '#e9c47b';
+    ctx.fillRect(0, ground, w, h - ground);
+    ctx.fillStyle = '#bd854f';
+    ctx.fillRect(0, ground, w, 5);
+
+    ctx.fillStyle = 'rgba(126,83,44,.35)';
+    for (let x = -((score * 8) % 34); x < w; x += 34) {
+      ctx.fillRect(x, ground + 18 + ((x / 34) % 2) * 9, 14, 3);
+    }
+
+    dust.forEach(p => {
+      ctx.globalAlpha = Math.min(1, p.life * 3);
+      ctx.fillStyle = '#a66d40';
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    obstacles.forEach(drawCactus);
+    drawDino();
+    ctx.restore();
+  }
+
+  function frame(time) {
+    const dt = Math.min(.035, (time - last) / 1000 || 0);
+    last = time;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  function action(e) {
+    if (e) e.preventDefault();
+    jump();
+  }
+
+  canvas.addEventListener('pointerdown', action, { passive: false });
+  window.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') action(e);
+  });
+  restart.addEventListener('click', reset);
+  window.addEventListener('resize', resize);
+
+  resize();
+  updateUI();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

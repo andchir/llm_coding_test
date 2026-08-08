@@ -41,6 +41,26 @@
       "model": "openai/gpt-5.6-terra",
       "output_tokens": 5859,
       "price": 3.7429957
+    },
+    {
+      "model": "anthropic/claude-sonnet-5",
+      "output_tokens": 5576,
+      "price": 5.974104
+    },
+    {
+      "model": "google/gemini-3.1-pro-preview",
+      "output_tokens": 10294,
+      "price": 13.1150898
+    },
+    {
+      "model": "openai/gpt-5.6-terra-pro",
+      "output_tokens": 16509,
+      "price": 13.0384424
+    },
+    {
+      "model": "kwaipilot/kat-coder-pro-v2.5",
+      "output_tokens": 11489,
+      "price": 3.6158452
     }
   ]
 }
