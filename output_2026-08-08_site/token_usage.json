@@ -5,38 +5,42 @@
     {
     "model": "deepseek/deepseek-v4-pro",
     "output_tokens": 13441,
-    "price": 1.7397804,
-    "currency": "RUB"
+    "price": 1.7397804
   },
   {
     "model": "openai/gpt-5.6-luna",
     "output_tokens": 7995,
-    "price": 0.5099313,
-    "currency": "RUB"
+    "price": 0.5099313
   },
   {
     "model": "moonshotai/kimi-k2.7-code",
     "output_tokens": 8670,
-    "price": 3.23538,
-    "currency": "RUB"
+    "price": 3.23538
   },
   {
     "model": "minimax/minimax-m3",
     "output_tokens": 15996,
-    "price": 2.0447945,
-    "currency": "RUB"
+    "price": 2.0447945
   },
   {
     "model": "x-ai/grok-4.5",
     "output_tokens": 9312,
-    "price": 5.9773212,
-    "currency": "RUB"
+    "price": 5.9773212
   },
   {
     "model": "z-ai/glm-5.2",
     "output_tokens": 16389,
-    "price": 7.6408547,
-    "currency": "RUB"
+    "price": 7.6408547
+    },
+    {
+      "model": "openai/gpt-5.6-luna-pro",
+      "output_tokens": 27109,
+      "price": 2.0173104
+    },
+    {
+      "model": "openai/gpt-5.6-terra",
+      "output_tokens": 6850,
+      "price": 4.372261
     }
   ]
 }
