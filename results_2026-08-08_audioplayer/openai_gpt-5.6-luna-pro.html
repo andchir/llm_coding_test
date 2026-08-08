@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d111c">
+  <title>WavePlayer</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: rgba(21, 27, 43, .78);
+      --panel-solid: #151b2b;
+      --line: rgba(255,255,255,.1);
+      --text: #f4f7ff;
+      --muted: #8c96af;
+      --accent: #8c6cff;
+      --accent-2: #00d9c0;
+      --danger: #ff6d8d;
+      --shadow: 0 25px 80px rgba(0,0,0,.42);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100svh;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 12% 8%, rgba(140,108,255,.2), transparent 30%),
+        radial-gradient(circle at 90% 78%, rgba(0,217,192,.12), transparent 27%),
+        var(--bg);
+    }
+
+    button, input { font: inherit; }
+
+    button {
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: min(1080px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 34px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent), #b994ff);
+      box-shadow: 0 8px 24px rgba(140,108,255,.35);
+    }
+
+    .brand-mark svg { width: 23px; height: 23px; }
+
+    .upload-btn, .ghost-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 44px;
+      padding: 0 17px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.06);
+      transition: background .25s ease, color .25s ease, border-color .25s ease, transform .25s ease;
+    }
+
+    .upload-btn:hover, .ghost-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .upload-btn svg, .ghost-btn svg { width: 18px; height: 18px; }
+
+    #fileInput { display: none; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(270px, .85fr);
+      gap: 20px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(20px);
+    }
+
+    .player {
+      padding: clamp(22px, 4vw, 42px);
+      overflow: hidden;
+    }
+
+    .visual {
+      position: relative;
+      min-height: 290px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 28px;
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 23px;
+      overflow: hidden;
+      background:
+        linear-gradient(135deg, rgba(140,108,255,.12), rgba(0,217,192,.04)),
+        rgba(4,7,15,.28);
+    }
+
+    .visual::before,
+    .visual::after {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      border-radius: 50%;
+      filter: blur(45px);
+      opacity: .26;
+      animation: float 8s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    .visual::before {
+      top: -80px;
+      left: -60px;
+      background: var(--accent);
+    }
+
+    .visual::after {
+      right: -70px;
+      bottom: -80px;
+      background: var(--accent-2);
+      animation-delay: -3s;
+    }
+
+    #waveform {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .disc {
+      position: relative;
+      z-index: 2;
+      width: clamp(125px, 27vw, 185px);
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 50%;
+      background:
+        repeating-radial-gradient(circle at center, transparent 0 11px, rgba(255,255,255,.035) 12px 13px),
+        linear-gradient(145deg, #272044, #111725 70%);
+      box-shadow: 0 0 0 12px rgba(255,255,255,.025), 0 18px 50px rgba(0,0,0,.35);
+      animation: rotate 12s linear infinite paused;
+    }
+
+    body.is-playing .disc { animation-play-state: running; }
+
+    .disc::after {
+      content: "";
+      width: 25%;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent-2), var(--accent));
+      box-shadow: 0 0 25px rgba(0,217,192,.55);
+    }
+
+    .disc svg {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      color: rgba(255,255,255,.82);
+    }
+
+    .track-info { text-align: center; }
+
+    .track-title {
+      margin: 0;
+      overflow: hidden;
+      font-size: clamp(22px, 4vw, 30px);
+      letter-spacing: -.045em;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .track-artist {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .progress-wrap { margin-top: 27px; }
+
+    .range {
+      --value: 0%;
+      width: 100%;
+      height: 5px;
+      display: block;
+      margin: 0;
+      appearance: none;
+      border-radius: 10px;
+      outline: none;
+      background: linear-gradient(90deg, var(--accent) var(--value), rgba(255,255,255,.12) var(--value));
+      cursor: pointer;
+    }
+
+    .range::-webkit-slider-thumb {
+      width: 15px;
+      height: 15px;
+      appearance: none;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 4px rgba(140,108,255,.18);
+    }
+
+    .range::-moz-range-thumb {
+      width: 11px;
+      height: 11px;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    .time-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 27px;
+    }
+
+    .control-btn {
+      width: 47px;
+      height: 47px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: transparent;
+      color: #c5cbe0;
+      transition: color .25s, background .25s, transform .25s;
+    }
+
+    .control-btn:hover {
+      color: var(--text);
+      background: rgba(140,108,255,.18);
+      transform: scale(1.08);
+    }
+
+    .control-btn svg { width: 21px; height: 21px; }
+
+    .play-btn {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, var(--accent), #aa86ff);
+      box-shadow: 0 11px 28px rgba(140,108,255,.35);
+    }
+
+    .play-btn:hover {
+      background: linear-gradient(135deg, var(--accent-2), #46eed9);
+      color: #08131b;
+      transform: scale(1.08);
+    }
+
+    .play-btn svg { width: 25px; height: 25px; }
+
+    .volume {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 23px;
+      color: var(--muted);
+    }
+
+    .volume svg { width: 18px; height: 18px; flex: 0 0 auto; }
+    .volume .range { height: 4px; }
+
+    .playlist {
+      padding: 22px;
+      min-height: 100%;
+    }
+
+    .playlist-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .playlist h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -.03em;
+    }
+
+    .count {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .dropzone {
+      display: grid;
+      place-items: center;
+      min-height: 112px;
+      padding: 15px;
+      border: 1px dashed rgba(255,255,255,.18);
+      border-radius: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      transition: .25s ease;
+    }
+
+    .dropzone.dragover {
+      border-color: var(--accent-2);
+      background: rgba(0,217,192,.08);
+      color: var(--text);
+    }
+
+    .dropzone svg {
+      width: 25px;
+      height: 25px;
+      margin-bottom: 7px;
+      color: var(--accent-2);
+    }
+
+    .tracks {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 16px;
+      max-height: 390px;
+      overflow: auto;
+    }
+
+    .track {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-width: 0;
+      padding: 11px;
+      border: 1px solid transparent;
+      border-radius: 15px;
+      background: rgba(255,255,255,.035);
+      cursor: pointer;
+      transition: .25s ease;
+    }
+
+    .track:hover, .track.active {
+      border-color: rgba(140,108,255,.45);
+      background: rgba(140,108,255,.13);
+    }
+
+    .track-number {
+      width: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .track-icon {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 10px;
+      background: rgba(255,255,255,.08);
+      color: var(--accent-2);
+    }
+
+    .track-icon svg { width: 17px; height: 17px; }
+
+    .track-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .empty {
+      margin: 22px 0 3px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .status {
+      min-height: 18px;
+      margin-top: 18px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 12px;
+    }
+
+    @keyframes rotate { to { transform: rotate(360deg); } }
+    @keyframes float { to { transform: translate(38px, 25px) scale(1.16); } }
+
+    @media (max-width: 760px) {
+      .app { width: min(100% - 20px, 560px); padding-top: 17px; }
+      .topbar { margin-bottom: 15px; }
+      .brand { font-size: 18px; }
+      .brand-mark { width: 38px; height: 38px; border-radius: 12px; }
+      .upload-btn { width: 44px; padding: 0; font-size: 0; }
+      .upload-btn svg { width: 20px; height: 20px; }
+      .layout { grid-template-columns: 1fr; gap: 14px; }
+      .player { padding: 18px; border-radius: 23px; }
+      .visual { min-height: 245px; margin-bottom: 23px; }
+      .playlist { padding: 18px; border-radius: 23px; }
+      .tracks { max-height: 245px; }
+    }
+
+    @media (max-width: 370px) {
+      .controls { gap: 8px; }
+      .control-btn { width: 43px; height: 43px; }
+      .play-btn { width: 59px; height: 59px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/>
+          </svg>
+        </div>
+        <span>WavePlayer</span>
+      </div>
+      <label class="upload-btn" for="fileInput" title="Загрузить аудио">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 16V4M7 9l5-5 5 5M4 20h16"/>
+        </svg>
+        <span>Добавить треки</span>
+      </label>
+      <input id="fileInput" type="file" accept="audio/*,.mp3" multiple>
+    </header>
+
+    <section class="layout">
+      <section class="player card">
+        <div class="visual">
+          <canvas id="waveform"></canvas>
+          <div class="disc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V6l10-2v12"/>
+              <circle cx="6" cy="18" r="3"/>
+              <circle cx="16" cy="16" r="3"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="track-info">
+          <h1 class="track-title" id="trackTitle">Выберите аудиофайл</h1>
+          <p class="track-artist" id="trackArtist">MP3 • готов к воспроизведению</p>
+        </div>
+
+        <div class="progress-wrap">
+          <input class="range" id="progress" type="range" min="0" max="100" value="0" step="0.1" aria-label="Позиция воспроизведения">
+          <div class="time-row">
+            <span id="currentTime">0:00</span>
+            <span id="duration">0:00</span>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button class="control-btn" id="prevBtn" aria-label="Предыдущий трек">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 5h2v14H6zM18 6.5v11a1 1 0 0 1-1.56.83l-7.7-5.5a1 1 0 0 1 0-1.66l7.7-5.5A1 1 0 0 1 18 6.5Z"/></svg>
+          </button>
+          <button class="control-btn" id="backBtn" aria-label="Назад на 10 секунд">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 12a8 8 0 1 0 2.34-5.66L4 8.68"/>
+              <path d="M4 4v4.68h4.68"/>
+              <text x="8.3" y="14.6" fill="currentColor" stroke="none" font-size="6.4" font-weight="700">10</text>
+            </svg>
+          </button>
+          <button class="control-btn play-btn" id="playBtn" aria-label="Воспроизвести">
+            <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.4v13.2a1 1 0 0 0 1.53.85l10-6.6a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.4Z"/></svg>
+          </button>
+          <button class="control-btn" id="forwardBtn" aria-label="Вперед на 10 секунд">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 12a8 8 0 1 1-2.34-5.66L20 8.68"/>
+              <path d="M20 4v4.68h-4.68"/>
+              <text x="8.3" y="14.6" fill="currentColor" stroke="none" font-size="6.4" font-weight="700">10</text>
+            </svg>
+          </button>
+          <button class="control-btn" id="nextBtn" aria-label="Следующий трек">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 5h2v14h-2zM4 6.5v11a1 1 0 0 0 1.56.83l7.7-5.5a1 1 0 0 0 0-1.66l-7.7-5.5A1 1 0 0 0 4 6.5Z"/></svg>
+          </button>
+        </div>
+
+        <div class="volume">
+          <svg id="volumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 10v4h4l5 4V6l-5 4H4Z"/>
+            <path d="M17 9a4 4 0 0 1 0 6M19.5 6.5a8 8 0 0 1 0 11"/>
+          </svg>
+          <input class="range" id="volume" type="range" min="0" max="1" value=".8" step=".01" aria-label="Громкость">
+        </div>
+        <div class="status" id="status">Перетащите аудиофайлы сюда или нажмите «Добавить треки»</div>
+      </section>
+
+      <aside class="playlist card">
+        <div class="playlist-head">
+          <h2>Моя коллекция</h2>
+          <span class="count" id="count">0 треков</span>
+        </div>
+        <div class="dropzone" id="dropzone">
+          <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 16V4M7 9l5-5 5 5M5 20h14"/>
+            </svg>
+            <div>Перетащите MP3-файлы<br>в эту область</div>
+          </div>
+        </div>
+        <div class="tracks" id="tracks"></div>
+        <p class="empty" id="empty">Здесь появятся ваши локальные аудиофайлы</p>
+      </aside>
+    </section>
+  </main>
+
+  <audio id="audio" crossorigin="anonymous"></audio>
+
+  <script>
+    const audio = document.getElementById('audio');
+    const fileInput = document.getElementById('fileInput');
+    const tracksEl = document.getElementById('tracks');
+    const emptyEl = document.getElementById('empty');
+    const countEl = document.getElementById('count');
+    const titleEl = document.getElementById('trackTitle');
+    const artistEl = document.getElementById('trackArtist');
+    const statusEl = document.getElementById('status');
+    const progress = document.getElementById('progress');
+    const volume = document.getElementById('volume');
+    const currentTimeEl = document.getElementById('currentTime');
+    const durationEl = document.getElementById('duration');
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = document.getElementById('playIcon');
+    const canvas = document.getElementById('waveform');
+    const ctx = canvas.getContext('2d');
+    const dropzone = document.getElementById('dropzone');
+
+    let playlist = [];
+    let currentIndex = -1;
+    let audioContext, analyser, source;
+    let playing = false;
+
+    const playPath = '<path d="M8 5.4v13.2a1 1 0 0 0 1.53.85l10-6.6a1 1 0 0 0 0-1.7l-10-6.6A1 1 0 0 0 8 5.4Z"/>';
+    const pausePath = '<path d="M7 5h3v14H7zM14 5h3v14h-3z"/>';
+
+    function formatTime(seconds) {
+      if (!isFinite(seconds)) return '0:00';
+      const min = Math.floor(seconds / 60);
+      const sec = Math.floor(seconds % 60).toString().padStart(2, '0');
+      return `${min}:${sec}`;
+    }
+
+    function updateRange(el, value, max) {
+      const percent = max ? (value / max) * 100 : 0;
+      el.style.setProperty('--value', `${percent}%`);
+    }
+
+    function setupAudio() {
+      if (audioContext) return;
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = .78;
+      source = audioContext.createMediaElementSource(audio);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
+      drawWave();
+    }
+
+    async function togglePlay() {
+      if (currentIndex < 0) {
+        statusEl.textContent = 'Сначала добавьте аудиофайл';
+        return;
+      }
+      setupAudio();
+      if (audioContext.state === 'suspended') await audioContext.resume();
+      if (audio.paused) {
+        await audio.play();
+      } else {
+        audio.pause();
+      }
+    }
+
+    function loadTrack(index, autoplay = false) {
+      if (!playlist[index]) return;
+      currentIndex = index;
+      const item = playlist[index];
+      audio.src = item.url;
+      audio.load();
+      titleEl.textContent = item.name.replace(/\.[^/.]+$/, '');
+      artistEl.textContent = `${item.type || 'Аудиофайл'} • локальное воспроизведение`;
+      renderPlaylist();
+      statusEl.textContent = autoplay ? 'Загрузка трека…' : 'Готово к воспроизведению';
+      if (autoplay) {
+        setupAudio();
+        if (audioContext.state === 'suspended') audioContext.resume();
+        audio.play().catch(() => {});
+      }
+    }
+
+    function addFiles(files) {
+      const audioFiles = [...files].filter(file => file.type.startsWith('audio/') || /\.mp3$/i.test(file.name));
+      if (!audioFiles.length) {
+        statusEl.textContent = 'Поддерживаются аудиофайлы, включая MP3';
+        return;
+      }
+
+      audioFiles.forEach(file => {
+        playlist.push({
+          name: file.name,
+          type: file.type.split('/')[1]?.toUpperCase() || 'AUDIO',
+          url: URL.createObjectURL(file)
+        });
+      });
+
+      if (currentIndex < 0) loadTrack(0);
+      else renderPlaylist();
+      statusEl.textContent = `Добавлено файлов: ${audioFiles.length}`;
+    }
+
+    function renderPlaylist() {
+      tracksEl.innerHTML = '';
+      playlist.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = `track ${index === currentIndex ? 'active' : ''}`;
+        row.innerHTML = `
+          <span class="track-number">${String(index + 1).padStart(2, '0')}</span>
+          <span class="track-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 18V6l10-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/>
+            </svg>
+          </span>
+          <span class="track-name">${escapeHtml(item.name)}</span>
+        `;
+        row.addEventListener('click', () => loadTrack(index, true));
+        tracksEl.appendChild(row);
+      });
+      countEl.textContent = `${playlist.length} ${playlist.length === 1 ? 'трек' : playlist.length < 5 ? 'трека' : 'треков'}`;
+      emptyEl.style.display = playlist.length ? 'none' : 'block';
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/[&<>"']/g, char => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'
+      }[char]));
+    }
+
+    function setPlaying(state) {
+      playing = state;
+      document.body.classList.toggle('is-playing', state);
+      playIcon.innerHTML = state ? pausePath : playPath;
+      playBtn.setAttribute('aria-label', state ? 'Пауза' : 'Воспроизвести');
+      statusEl.textContent = state ? 'Воспроизводится' : 'Пауза';
+    }
+
+    function drawWave() {
+      requestAnimationFrame(drawWave);
+      const rect = canvas.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) {
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const width = rect.width, height = rect.height;
+      ctx.clearRect(0, 0, width, height);
+
+      const bars = 54;
+      const gap = Math.max(2, width / 340);
+      const barWidth = Math.max(2, (width - gap * (bars - 1)) / bars);
+      const data = analyser ? new Uint8Array(analyser.frequencyBinCount) : null;
+      if (data) analyser.getByteFrequencyData(data);
+
+      for (let i = 0; i < bars; i++) {
+        const wave = Math.abs(Math.sin(i * .48)) * .28 + .12;
+        const value = data ? data[Math.floor(i / bars * data.length)] / 255 : 0;
+        const h = Math.max(4, (height * .13) + value * height * .48 + (playing ? Math.random() * 6 : 0) + wave * height * .12);
+        const x = i * (barWidth + gap);
+        const y = (height - h) / 2;
+        const gradient = ctx.createLinearGradient(0, y, 0, y + h);
+        gradient.addColorStop(0, '#00d9c0');
+        gradient.addColorStop(1, '#8c6cff');
+        ctx.fillStyle = gradient;
+        ctx.globalAlpha = .62 + value * .38;
+        ctx.beginPath();
+        ctx.roundRect(x, y, barWidth, h, barWidth / 2);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    fileInput.addEventListener('change', e => {
+      addFiles(e.target.files);
+      fileInput.value = '';
+    });
+
+    ['dragenter', 'dragover'].forEach(type => dropzone.addEventListener(type, e => {
+      e.preventDefault();
+      dropzone.classList.add('dragover');
+    }));
+
+    ['dragleave', 'drop'].forEach(type => dropzone.addEventListener(type, e => {
+      e.preventDefault();
+      dropzone.classList.remove('dragover');
+    }));
+
+    dropzone.addEventListener('drop', e => addFiles(e.dataTransfer.files));
+
+    playBtn.addEventListener('click', togglePlay);
+    volume.addEventListener('input', () => {
+      audio.volume = volume.value;
+      updateRange(volume, volume.value, 1);
+      localStorage.setItem('waveplayer-volume', volume.value);
+    });
+
+    progress.addEventListener('input', () => {
+      if (audio.duration) audio.currentTime = (progress.value / 100) * audio.duration;
+    });
+
+    document.getElementById('backBtn').addEventListener('click', () => audio.currentTime = Math.max(0, audio.currentTime - 10));
+    document.getElementById('forwardBtn').addEventListener('click', () => audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10));
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (currentIndex > 0) loadTrack(currentIndex - 1, true);
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (currentIndex < playlist.length - 1) loadTrack(currentIndex + 1, true);
+    });
+
+    audio.addEventListener('play', () => setPlaying(true));
+    audio.addEventListener('pause', () => setPlaying(false));
+    audio.addEventListener('loadedmetadata', () => {
+      durationEl.textContent = formatTime(audio.duration);
+      progress.value = 0;
+      updateRange(progress, 0, 100);
+    });
+    audio.addEventListener('timeupdate', () => {
+      const percent = audio.duration ? audio.currentTime / audio.duration * 100 : 0;
+      progress.value = percent;
+      updateRange(progress, percent, 100);
+      currentTimeEl.textContent = formatTime(audio.currentTime);
+    });
+    audio.addEventListener('ended', () => {
+      if (currentIndex < playlist.length - 1) loadTrack(currentIndex + 1, true);
+      else setPlaying(false);
+    });
+    audio.addEventListener('error', () => statusEl.textContent = 'Не удалось воспроизвести этот файл');
+
+    const savedVolume = localStorage.getItem('waveplayer-volume');
+    if (savedVolume !== null) volume.value = savedVolume;
+    audio.volume = volume.value;
+    updateRange(volume, volume.value, 1);
+    renderPlaylist();
+  </script>
+</body>
+</html>

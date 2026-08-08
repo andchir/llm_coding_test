@@ -1,0 +1,46 @@
+{
+  "prompt": "Стильный оффлайн аудиоплеер с анимацией звуковой волны. Можно загрузить mp3 и проиграть.",
+  "currency": "RUB",
+  "results": [
+    {
+      "model": "deepseek/deepseek-v4-pro",
+      "output_tokens": 7436,
+      "price": 0.9661813
+    },
+    {
+      "model": "openai/gpt-5.6-luna",
+      "output_tokens": 5215,
+      "price": 0.3334915
+    },
+    {
+      "model": "moonshotai/kimi-k2.7-code",
+      "output_tokens": 10057,
+      "price": 3.7482312
+    },
+    {
+      "model": "minimax/minimax-m3",
+      "output_tokens": 8679,
+      "price": 1.1126628
+    },
+    {
+      "model": "x-ai/grok-4.5",
+      "output_tokens": 7484,
+      "price": 5.0123801
+    },
+    {
+      "model": "z-ai/glm-5.2",
+      "output_tokens": 12083,
+      "price": 5.6370905
+    },
+    {
+      "model": "openai/gpt-5.6-luna-pro",
+      "output_tokens": 20714,
+      "price": 1.5481131
+    },
+    {
+      "model": "openai/gpt-5.6-terra",
+      "output_tokens": 6407,
+      "price": 4.0918115
+    }
+  ]
+}

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wavebox — оффлайн аудиоплеер</title>
+<style>
+:root{
+  --bg:#080b14;
+  --panel:rgba(20,25,42,.78);
+  --panel-2:rgba(29,36,61,.78);
+  --line:rgba(255,255,255,.1);
+  --text:#f7f8ff;
+  --muted:#9299b5;
+  --accent:#8d6bff;
+  --accent-2:#36d8c6;
+  --danger:#ff668c;
+  --shadow:0 30px 80px rgba(0,0,0,.38);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+body{overflow-x:hidden}
+body:before,body:after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(2px);pointer-events:none}
+body:before{width:430px;height:430px;top:-170px;right:-100px;background:radial-gradient(circle,rgba(141,107,255,.35),transparent 68%)}
+body:after{width:520px;height:520px;bottom:-260px;left:-180px;background:radial-gradient(circle,rgba(54,216,198,.18),transparent 68%)}
+button,input{font:inherit}
+button{border:0;cursor:pointer}
+.app{width:min(1040px,100%);margin:auto;padding:28px 20px 34px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),#5741bd);box-shadow:0 12px 30px rgba(141,107,255,.32)}
+.logo svg{width:23px;height:23px}
+.brand h1{font-size:17px;line-height:1;margin:0;font-weight:800;letter-spacing:.02em}
+.brand small{display:block;color:var(--muted);font-size:11px;margin-top:5px}
+.upload-label{display:inline-flex;align-items:center;gap:9px;padding:11px 15px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.06);color:#fff;font-size:13px;font-weight:700;transition:.25s ease}
+.upload-label:hover{background:var(--accent);border-color:var(--accent);transform:translateY(-2px)}
+.upload-label svg{width:17px;height:17px}
+#fileInput{display:none}
+.player{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:28px;background:linear-gradient(145deg,rgba(25,30,52,.9),rgba(11,15,27,.9));box-shadow:var(--shadow);padding:clamp(22px,5vw,48px)}
+.player:after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 15%,rgba(255,255,255,.035) 50%,transparent 85%);transform:translateX(-100%);animation:shine 8s infinite;pointer-events:none}
+@keyframes shine{50%,100%{transform:translateX(100%)}}
+.content{position:relative;z-index:1}
+.track-head{display:flex;align-items:center;gap:18px;margin-bottom:30px}
+.cover{width:78px;height:78px;flex:none;border-radius:20px;display:grid;place-items:center;background:linear-gradient(135deg,#2c345e,#15182b);border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 0 30px rgba(141,107,255,.16)}
+.cover.playing{animation:coverPulse 2.2s ease-in-out infinite}
+@keyframes coverPulse{50%{box-shadow:inset 0 0 30px rgba(141,107,255,.22),0 0 0 8px rgba(141,107,255,.04)}}
+.cover svg{width:34px;height:34px;color:var(--accent-2)}
+.track-info{min-width:0}
+.track-info h2{font-size:clamp(19px,4vw,28px);margin:0 0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track-info p{margin:0;color:var(--muted);font-size:13px}
+.wave-wrap{position:relative;height:190px;border-radius:20px;background:rgba(5,8,17,.42);border:1px solid rgba(255,255,255,.06);overflow:hidden}
+#wave{display:block;width:100%;height:100%;touch-action:none}
+.wave-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(141,107,255,.08),transparent 63%)}
+.progress-line{height:3px;background:rgba(255,255,255,.08);border-radius:5px;margin:20px 0 9px;position:relative;cursor:pointer}
+.progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));border-radius:inherit;position:relative;transition:width .08s linear}
+.progress-fill:after{content:"";position:absolute;right:-5px;top:50%;width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(141,107,255,.22);transform:translateY(-50%)}
+.time{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums}
+.controls{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:28px}
+.icon-btn,.play-btn{display:grid;place-items:center;border-radius:50%;color:#dce0f3;background:transparent;transition:background .25s,color .25s,transform .25s}
+.icon-btn{width:42px;height:42px}
+.icon-btn:hover{background:rgba(255,255,255,.1);color:var(--accent-2);transform:translateY(-2px)}
+.icon-btn svg{width:20px;height:20px}
+.play-btn{width:70px;height:70px;background:linear-gradient(135deg,var(--accent),#5a43c5);box-shadow:0 12px 28px rgba(109,80,228,.42);color:white}
+.play-btn:hover{background:linear-gradient(135deg,var(--accent-2),#279dba);transform:scale(1.06)}
+.play-btn svg{width:28px;height:28px}
+.bottom{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:28px;padding-top:22px;border-top:1px solid rgba(255,255,255,.08)}
+.volume{display:flex;align-items:center;gap:10px;color:var(--muted);min-width:160px}
+.volume svg{width:18px;height:18px;flex:none}
+input[type=range]{appearance:none;width:125px;height:4px;border-radius:10px;background:linear-gradient(90deg,var(--accent) 70%,rgba(255,255,255,.13) 70%);outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(141,107,255,.2)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:#fff}
+.hint{color:var(--muted);font-size:12px;text-align:right}
+.empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);pointer-events:none;padding:20px}
+.empty strong{display:block;color:#c8cce0;font-size:14px;margin-bottom:6px}
+.empty svg{width:30px;height:30px;margin-bottom:10px;color:var(--accent-2)}
+@media(max-width:620px){
+  .app{padding:18px 13px 25px}
+  .topbar{margin-bottom:16px}
+  .brand h1{font-size:15px}
+  .upload-label{padding:10px 11px;font-size:12px}
+  .upload-label span{display:none}
+  .player{border-radius:22px;padding:22px 15px}
+  .track-head{margin-bottom:22px}
+  .cover{width:64px;height:64px;border-radius:16px}
+  .cover svg{width:28px;height:28px}
+  .wave-wrap{height:155px}
+  .controls{gap:8px;margin-top:24px}
+  .play-btn{width:62px;height:62px}
+  .icon-btn{width:39px;height:39px}
+  .bottom{align-items:flex-start;flex-direction:column;margin-top:23px}
+  .hint{text-align:left}
+  .volume{width:100%}
+  input[type=range]{flex:1;width:auto}
+}
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 17V7m4 13V4m4 16V8m4 9V3m4 14v-7"/></svg>
+      </div>
+      <div><h1>WAVEBOX</h1><small>Оффлайн аудиоплеер</small></div>
+    </div>
+    <label class="upload-label" for="fileInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/></svg>
+      <span>Загрузить MP3</span>
+    </label>
+    <input id="fileInput" type="file" accept="audio/mpeg,audio/mp3,audio/*">
+  </header>
+
+  <section class="player">
+    <div class="content">
+      <div class="track-head">
+        <div class="cover" id="cover">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="2.5"/><path d="M12 4v5m0 6v5M4 12h5m6 0h5"/></svg>
+        </div>
+        <div class="track-info">
+          <h2 id="trackName">Выберите аудиофайл</h2>
+          <p id="trackMeta">MP3 · готов к воспроизведению</p>
+        </div>
+      </div>
+
+      <div class="wave-wrap">
+        <canvas id="wave"></canvas>
+        <div class="wave-glow"></div>
+        <div class="empty" id="emptyState">
+          <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>
+            <strong>Перетащите MP3 или нажмите «Загрузить»</strong>
+            Файл останется только на вашем устройстве
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-line" id="progressLine" aria-label="Позиция трека">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="time"><span id="currentTime">00:00</span><span id="duration">00:00</span></div>
+
+      <div class="controls">
+        <button class="icon-btn" id="restartBtn" aria-label="Начать сначала">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 1 0 2.3-5.65L4 8.7"/><path d="M4 4v4.7h4.7"/></svg>
+        </button>
+        <button class="icon-btn" id="backBtn" aria-label="Назад на 10 секунд">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 8 5 12l4 4"/><path d="M5 12h8a5 5 0 1 1-1.5 3.5"/></svg>
+        </button>
+        <button class="play-btn" id="playBtn" aria-label="Воспроизвести">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="currentColor"><path d="m8 5 11 7-11 7V5Z"/></svg>
+        </button>
+        <button class="icon-btn" id="forwardBtn" aria-label="Вперед на 10 секунд">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m15 8 4 4-4 4"/><path d="M19 12h-8a5 5 0 1 0 1.5 3.5"/></svg>
+        </button>
+        <button class="icon-btn" id="muteBtn" aria-label="Отключить звук">
+          <svg id="volumeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10v4h4l5 4V6l-5 4H4Z"/><path d="M16 9a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12"/></svg>
+        </button>
+      </div>
+
+      <div class="bottom">
+        <div class="volume">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10v4h4l5 4V6l-5 4H4Z"/><path d="M16 9a4 4 0 0 1 0 6"/></svg>
+          <input id="volumeRange" type="range" min="0" max="1" step=".01" value=".8" aria-label="Громкость">
+        </div>
+        <div class="hint">Нажмите на волну, чтобы переместиться по треку</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<audio id="audio" preload="metadata"></audio>
+
+<script>
+const audio=document.getElementById('audio');
+const fileInput=document.getElementById('fileInput');
+const canvas=document.getElementById('wave');
+const ctx=canvas.getContext('2d');
+const playBtn=document.getElementById('playBtn');
+const playIcon=document.getElementById('playIcon');
+const cover=document.getElementById('cover');
+const progressLine=document.getElementById('progressLine');
+const progressFill=document.getElementById('progressFill');
+const emptyState=document.getElementById('emptyState');
+const currentTime=document.getElementById('currentTime');
+const duration=document.getElementById('duration');
+const trackName=document.getElementById('trackName');
+const trackMeta=document.getElementById('trackMeta');
+const volumeRange=document.getElementById('volumeRange');
+let audioCtx, analyser, source, data, raf, objectUrl, loaded=false;
+
+audio.volume=Number(localStorage.getItem('wavebox-volume')||.8);
+volumeRange.value=audio.volume;
+updateRange();
+
+function format(t){
+  if(!isFinite(t)) return '00:00';
+  t=Math.floor(t);
+  return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+}
+function resize(){
+  const r=canvas.getBoundingClientRect(), d=window.devicePixelRatio||1;
+  canvas.width=r.width*d; canvas.height=r.height*d; ctx.setTransform(d,0,0,d,0,0);
+}
+function setupAudio(){
+  if(audioCtx)return;
+  audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=256;
+  source=audioCtx.createMediaElementSource(audio);
+  source.connect(analyser); analyser.connect(audioCtx.destination);
+  data=new Uint8Array(analyser.frequencyBinCount);
+}
+function draw(){
+  const w=canvas.clientWidth,h=canvas.clientHeight;
+  ctx.clearRect(0,0,w,h);
+  const bars=Math.max(28,Math.floor(w/7)), gap=3, bw=(w-gap*(bars-1))/bars;
+  if(analyser && !audio.paused) analyser.getByteFrequencyData(data);
+  for(let i=0;i<bars;i++){
+    let value=analyser&&!audio.paused ? data[Math.floor(i/bars*data.length)]/255 : .18+Math.sin(i*.8+Date.now()/900)*.07;
+    let bh=Math.max(8,value*h*.72), x=i*(bw+gap), y=(h-bh)/2;
+    const grad=ctx.createLinearGradient(0,y,0,y+bh);
+    grad.addColorStop(0,'#36d8c6'); grad.addColorStop(1,'#8d6bff');
+    ctx.fillStyle=grad;
+    ctx.globalAlpha=.38+(i/bars)*.45;
+    ctx.beginPath(); ctx.roundRect(x,y,bw,bh,3); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+  raf=requestAnimationFrame(draw);
+}
+function setPlaying(on){
+  playIcon.innerHTML=on?'<path d="M7 5h3v14H7zm7 0h3v14h-3z"/>':'<path d="m8 5 11 7-11 7V5Z"/>';
+  cover.classList.toggle('playing',on);
+  playBtn.setAttribute('aria-label',on?'Пауза':'Воспроизвести');
+}
+fileInput.addEventListener('change',e=>{
+  const file=e.target.files[0]; if(!file)return;
+  if(objectUrl)URL.revokeObjectURL(objectUrl);
+  objectUrl=URL.createObjectURL(file); audio.src=objectUrl; loaded=true;
+  trackName.textContent=file.name.replace(/\.[^/.]+$/,'');
+  trackMeta.textContent=(file.type||'audio/mpeg')+' · '+(file.size/1048576).toFixed(2)+' МБ';
+  emptyState.style.display='none'; audio.load();
+});
+playBtn.addEventListener('click',async()=>{
+  if(!loaded)return fileInput.click();
+  setupAudio(); if(audioCtx.state==='suspended')await audioCtx.resume();
+  audio.paused?audio.play():audio.pause();
+});
+audio.addEventListener('play',()=>setPlaying(true));
+audio.addEventListener('pause',()=>setPlaying(false));
+audio.addEventListener('loadedmetadata',()=>duration.textContent=format(audio.duration));
+audio.addEventListener('timeupdate',()=>{
+  const p=audio.duration?audio.currentTime/audio.duration:0;
+  progressFill.style.width=(p*100)+'%'; currentTime.textContent=format(audio.currentTime);
+});
+audio.addEventListener('ended',()=>{setPlaying(false);audio.currentTime=0});
+function seek(e){
+  if(!loaded||!audio.duration)return;
+  const r=progressLine.getBoundingClientRect();
+  audio.currentTime=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*audio.duration;
+}
+progressLine.addEventListener('click',seek);
+document.getElementById('restartBtn').onclick=()=>{if(loaded)audio.currentTime=0};
+document.getElementById('backBtn').onclick=()=>{if(loaded)audio.currentTime=Math.max(0,audio.currentTime-10)};
+document.getElementById('forwardBtn').onclick=()=>{if(loaded)audio.currentTime=Math.min(audio.duration,audio.currentTime+10)};
+volumeRange.addEventListener('input',()=>{
+  audio.volume=volumeRange.value; localStorage.setItem('wavebox-volume',audio.volume); updateRange();
+});
+function updateRange(){volumeRange.style.background=`linear-gradient(90deg,var(--accent) ${audio.volume*100}%,rgba(255,255,255,.13) ${audio.volume*100}%)`};
+document.getElementById('muteBtn').onclick=()=>{
+  audio.muted=!audio.muted;
+  document.getElementById('volumeIcon').innerHTML=audio.muted?'<path d="M4 10v4h4l5 4V6l-5 4H4Z"/><path d="m18 9 4 6m0-6-4 6"/>':'<path d="M4 10v4h4l5 4V6l-5 4H4Z"/><path d="M16 9a4 4 0 0 1 0 6m2-9a8 8 0 0 1 0 12"/>';
+};
+['dragover','dragenter'].forEach(e=>document.addEventListener(e,x=>x.preventDefault()));
+document.addEventListener('drop',e=>{e.preventDefault();if(e.dataTransfer.files[0]){fileInput.files=e.dataTransfer.files;fileInput.dispatchEvent(new Event('change'))}});
+window.addEventListener('resize',resize);
+resize(); draw();
+</script>
+</body>
+</html>
