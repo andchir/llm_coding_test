@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Дино Прыгун</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+
+  h1 {
+    color: #e0e0e0;
+    margin-bottom: 12px;
+    font-size: clamp(20px, 5vw, 34px);
+    letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(0, 255, 170, 0.5);
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes glow {
+    from { text-shadow: 0 0 8px rgba(0, 255, 170, 0.4); }
+    to { text-shadow: 0 0 20px rgba(0, 255, 170, 0.9); }
+  }
+
+  .game-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 255, 170, 0.15);
+    animation: appear 0.6s ease-out;
+  }
+
+  @keyframes appear {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: linear-gradient(180deg, #87ceeb 0%, #b8e0f0 60%, #e8d5a3 60%, #d9c084 100%);
+  }
+
+  .hud {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    font-weight: bold;
+  }
+
+  .lives { display: flex; gap: 6px; }
+
+  .heart {
+    width: clamp(20px, 5vw, 30px);
+    height: clamp(20px, 5vw, 30px);
+    transition: transform 0.3s, opacity 0.3s;
+  }
+
+  .heart.lost {
+    opacity: 0.25;
+    transform: scale(0.75);
+    filter: grayscale(1);
+  }
+
+  .heart.hit { animation: heartPop 0.5s ease; }
+
+  @keyframes heartPop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.6) rotate(-12deg); }
+    100% { transform: scale(0.75); }
+  }
+
+  .scores {
+    text-align: right;
+    color: #2a2a3e;
+    font-size: clamp(13px, 3.5vw, 18px);
+    background: rgba(255, 255, 255, 0.55);
+    padding: 5px 12px;
+    border-radius: 10px;
+    line-height: 1.4;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(10, 15, 30, 0.82);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .overlay.hidden { display: none; }
+
+  .overlay h2 {
+    font-size: clamp(24px, 6vw, 42px);
+    color: #00ffaa;
+    text-shadow: 0 0 20px rgba(0, 255, 170, 0.6);
+    animation: bounce 1.2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .overlay p {
+    font-size: clamp(14px, 3.5vw, 18px);
+    color: #cfd8e3;
+    max-width: 400px;
+    line-height: 1.5;
+  }
+
+  .btn {
+    padding: 14px 40px;
+    font-size: clamp(16px, 4vw, 20px);
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    background: linear-gradient(135deg, #00c896, #00ffaa);
+    color: #0a1428;
+    letter-spacing: 1px;
+    transition: background 0.35s ease, transform 0.2s ease, box-shadow 0.35s ease;
+    box-shadow: 0 4px 20px rgba(0, 255, 170, 0.35);
+  }
+
+  .btn:hover {
+    background: linear-gradient(135deg, #ff8c42, #ffb347);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 8px 28px rgba(255, 140, 66, 0.5);
+  }
+
+  .btn:active { transform: translateY(0) scale(0.97); }
+
+  .hint {
+    margin-top: 12px;
+    color: #8899aa;
+    font-size: clamp(12px, 3vw, 15px);
+    text-align: center;
+    animation: fadeIn 1s ease;
+  }
+
+  .flash {
+    animation: damage 0.4s ease;
+  }
+
+  @keyframes damage {
+    0%, 100% { filter: none; }
+    50% { filter: brightness(1.4) saturate(2) hue-rotate(-40deg); }
+  }
+</style>
+</head>
+<body>
+
+<h1>🦖 ДИНО ПРЫГУН</h1>
+
+<div class="game-container" id="gameContainer">
+  <canvas id="game" width="800" height="360"></canvas>
+
+  <div class="hud">
+    <div class="lives" id="lives"></div>
+    <div class="scores">
+      <div>Счёт: <span id="score">0</span></div>
+      <div>Рекорд: <span id="hiscore">0</span></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="startOverlay">
+    <h2>Дино Прыгун</h2>
+    <p>Перепрыгивай кактусы! У тебя 3 жизни.<br>Нажми ПРОБЕЛ, кликни или коснись экрана для прыжка.</p>
+    <button class="btn" id="startBtn">ИГРАТЬ</button>
+  </div>
+
+  <div class="overlay hidden" id="gameOverOverlay">
+    <h2>Игра окончена!</h2>
+    <p>Твой счёт: <span id="finalScore">0</span><br>Рекорд: <span id="finalHiscore">0</span></p>
+    <button class="btn" id="restartBtn">ЕЩЁ РАЗ</button>
+  </div>
+</div>
+
+<div class="hint">Пробел / клик / тап — прыжок</div>
+
+<script>
+(function() {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const GROUND_Y = H - 60;
+
+  const scoreEl = document.getElementById('score');
+  const hiscoreEl = document.getElementById('hiscore');
+  const livesEl = document.getElementById('lives');
+  const startOverlay = document.getElementById('startOverlay');
+  const gameOverOverlay = document.getElementById('gameOverOverlay');
+  const finalScore = document.getElementById('finalScore');
+  const finalHiscore = document.getElementById('finalHiscore');
+  const container = document.getElementById('gameContainer');
+
+  let hiscore = parseInt(localStorage.getItem('dinoHiScore') || '0', 10);
+  hiscoreEl.textContent = hiscore;
+
+  const heartSVG = '<svg class="heart" viewBox="0 0 24 24"><path fill="#ff4d6d" stroke="#c9184a" stroke-width="1" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
+
+  let state = 'menu';
+  let score = 0, lives = 3, speed = 6, frame = 0;
+  let obstacles = [], clouds = [];
+  let invincible = 0;
+
+  const dino = {
+    x: 70, y: GROUND_Y, w: 52, h: 56,
+    vy: 0, jumping: false, legFrame: 0
+  };
+
+  function renderLives() {
+    livesEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = heartSVG;
+      const h = wrap.firstChild;
+      if (i >= lives) h.classList.add('lost');
+      livesEl.appendChild(h);
+    }
+  }
+
+  function reset() {
+    score = 0; lives = 3; speed = 6; frame = 0;
+    obstacles = []; clouds = [];
+    invincible = 0;
+    dino.y = GROUND_Y; dino.vy = 0; dino.jumping = false;
+    for (let i = 0; i < 4; i++) {
+      clouds.push({ x: Math.random() * W, y: 30 + Math.random() * 90, s: 0.4 + Math.random() * 0.6, size: 20 + Math.random() * 20 });
+    }
+    renderLives();
+    scoreEl.textContent = 0;
+  }
+
+  function jump() {
+    if (state !== 'playing') return;
+    if (!dino.jumping) {
+      dino.vy = -15.5;
+      dino.jumping = true;
+    }
+  }
+
+  function spawnObstacle() {
+    const type = Math.random();
+    let w, h, count = 1;
+    if (type < 0.5) { w = 24; h = 46; }
+    else if (type < 0.8) { w = 30; h = 60; }
+    else { w = 24; h = 46; count = 2; }
+    for (let i = 0; i < count; i++) {
+      obstacles.push({ x: W + 20 + i * (w + 8), y: GROUND_Y, w: w, h: h });
+    }
+  }
+
+  function drawDino() {
+    const x = dino.x, y = dino.y;
+    ctx.save();
+    if (invincible > 0 && Math.floor(invincible / 5) % 2 === 0) ctx.globalAlpha = 0.35;
+
+    ctx.fillStyle = '#2e8b57';
+    // хвост
+    ctx.beginPath();
+    ctx.moveTo(x - 14, y - 30);
+    ctx.lineTo(x + 6, y - 40);
+    ctx.lineTo(x + 6, y - 20);
+    ctx.closePath();
+    ctx.fill();
+    // тело
+    ctx.beginPath();
+    ctx.roundRect(x, y - 44, 32, 34, 8);
+    ctx.fill();
+    // голова
+    ctx.beginPath();
+    ctx.roundRect(x + 20, y - 62, 30, 24, 7);
+    ctx.fill();
+    // глаз
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(x + 40, y - 52, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(x + 41, y - 52, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    // рот
+    ctx.strokeStyle = '#1d5c38';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + 44, y - 43);
+    ctx.lineTo(x + 50, y - 43);
+    ctx.stroke();
+    // лапки
+    ctx.fillStyle = '#2e8b57';
+    const legOffset = dino.jumping ? 0 : (Math.floor(frame / 6) % 2 === 0 ? 4 : -4);
+    ctx.fillRect(x + 4, y - 12, 8, 12 + legOffset * 0.5);
+    ctx.fillRect(x + 20, y - 12, 8, 12 - legOffset * 0.5);
+    // ручка
+    ctx.fillRect(x + 26, y - 34, 10, 6);
+    // спинные шипы
+    ctx.fillStyle = '#1d5c38';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(x + 2 + i * 10, y - 44);
+      ctx.lineTo(x + 7 + i * 10, y - 52);
+      ctx.lineTo(x + 12 + i * 10, y - 44);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function drawCactus(o) {
+    ctx.fillStyle = '#2d7a2d';
+    const x = o.x, y = o.y, w = o.w, h = o.h;
+    // ствол
+    ctx.beginPath();
+    ctx.roundRect(x + w / 2 - 6, y - h, 12, h, 5);
+    ctx.fill();
+    // ветки
+    ctx.beginPath();
+    ctx.roundRect(x, y - h * 0.7, 7, h * 0.35, 4);
+    ctx.fill();
+    ctx.fillRect(x, y - h * 0.42, w / 2 - 4, 6);
+    ctx.beginPath();
+    ctx.roundRect(x + w - 7, y - h * 0.8, 7, h * 0.35, 4);
+    ctx.fill();
+    ctx.fillRect(x + w / 2 + 4, y - h * 0.52, w / 2 - 4, 6);
+    // колючки
+    ctx.strokeStyle = '#1a4d1a';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < 4; i++) {
+      ctx.beginPath();
+      ctx.moveTo(x + w / 2 - 6, y - (h / 4) * i);
+      ctx.lineTo(x + w / 2 - 10, y - (h / 4) * i - 3);
+      ctx.stroke();
+    }
+  }
+
+  function drawCloud(c) {
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.arc(c.x, c.y, c.size * 0.6, 0, Math.PI * 2);
+    ctx.arc(c.x + c.size * 0.7, c.y - c.size * 0.25, c.size * 0.5, 0, Math.PI * 2);
+    ctx.arc(c.x + c.size * 1.3, c.y, c.size * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawGround() {
+    ctx.strokeStyle = '#a08050';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, GROUND_Y + 2);
+    ctx.lineTo(W, GROUND_Y + 2);
+    ctx.stroke();
+    ctx.fillStyle = '#b09060';
+    for (let i = 0; i < 14; i++) {
+      const gx = ((i * 73 - frame * speed) % (W + 40) + W + 40) % (W + 40) - 20;
+      ctx.fillRect(gx, GROUND_Y + 14 + (i % 3) * 10, 14, 3);
+    }
+  }
+
+  function collide(o) {
+    const pad = 8;
+    return dino.x + pad < o.x + o.w &&
+           dino.x + dino.w - pad > o.x &&
+           dino.y - pad > o.y - o.h &&
+           dino.y - dino.h + pad < o.y;
+  }
+
+  function loseLife() {
+    lives--;
+    invincible = 80;
+    renderLives();
+    const hearts = livesEl.querySelectorAll('.heart');
+    if (hearts[lives]) hearts[lives].classList.add('hit');
+    container.classList.remove('flash');
+    void container.offsetWidth;
+    container.classList.add('flash');
+    if (lives <= 0) endGame();
+  }
+
+  function endGame() {
+    state = 'over';
+    if (score > hiscore) {
+      hiscore = score;
+      localStorage.setItem('dinoHiScore', String(hiscore));
+    }
+    hiscoreEl.textContent = hiscore;
+    finalScore.textContent = score;
+    finalHiscore.textContent = hiscore;
+    gameOverOverlay.classList.remove('hidden');
+  }
+
+  let spawnTimer = 90;
+
+  function update() {
+    frame++;
+    // дино физика
+    dino.vy += 0.85;
+    dino.y += dino.vy;
+    if (dino.y >= GROUND_Y) {
+      dino.y = GROUND_Y;
+      dino.vy = 0;
+      dino.jumping = false;
+    }
+
+    // облака
+    clouds.forEach(c => {
+      c.x -= c.s;
+      if (c.x < -60) { c.x = W + 60; c.y = 30 + Math.random() * 90; }
+    });
+
+    // препятствия
+    spawnTimer--;
+    if (spawnTimer <= 0) {
+      spawnObstacle();
+      spawnTimer = 60 + Math.random() * 70 - Math.min(speed * 3, 30);
+    }
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+      obstacles[i].x -= speed;
+      if (obstacles[i].x + obstacles[i].w < -10) {
+        obstacles.splice(i, 1);
+        continue;
+      }
+      if (invincible <= 0 && collide(obstacles[i])) {
+        loseLife();
+        obstacles.splice(i, 1);
+      }
+    }
+
+    if (invincible > 0) invincible--;
+
+    // счёт и скорость
+    if (frame % 6 === 0) {
+      score++;
+      scoreEl.textContent = score;
+    }
+    speed = 6 + Math.min(score / 100, 7);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    // небо
+    const sky = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
+    sky.addColorStop(0, '#87ceeb');
+    sky.addColorStop(1, '#cfeaf5');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, GROUND_Y);
+    // земля
+    ctx.fillStyle = '#e0c98a';
+    ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
+    // солнце
+    ctx.fillStyle = '#ffd93d';
+    ctx.beginPath();
+    ctx.arc(W - 80, 60, 28, 0, Math.PI * 2);
+    ctx.fill();
+
+    clouds.forEach(drawCloud);
+    drawGround();
+    obstacles.forEach(drawCactus);
+    drawDino();
+  }
+
+  function loop() {
+    if (state === 'playing') {
+      update();
+      draw();
+    }
+    requestAnimationFrame(loop);
+  }
+
+  function startGame() {
+    reset();
+    state = 'playing';
+    startOverlay.classList.add('hidden');
+    gameOverOverlay.classList.add('hidden');
+    draw();
+  }
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('restartBtn').addEventListener('click', startGame);
+
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') {
+      e.preventDefault();
+      if (state === 'playing') jump();
+    }
+  });
+
+  canvas.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    jump();
+  });
+
+  draw();
+  reset();
+  loop();
+})();
+</script>
+
+</body>
+</html>

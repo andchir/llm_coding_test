@@ -71,6 +71,11 @@
       "model": "anthropic/claude-opus-5",
       "output_tokens": 3354,
       "price": 9.0564031
+    },
+    {
+      "model": "anthropic/claude-fable-5",
+      "output_tokens": 7195,
+      "price": 38.4374596
     }
   ]
 }
