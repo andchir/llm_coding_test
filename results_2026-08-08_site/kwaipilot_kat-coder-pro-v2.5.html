@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Юрий Иванов | Адвокат по уголовным и гражданским делам в Москве</title>
+    <meta name="description" content="Профессиональная юридическая помощь в Москве. Опыт работы более 15 лет. Уголовные, гражданские и арбитражные дела.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            900: '#0A1926',
+                            800: '#112240',
+                            700: '#233554',
+                        },
+                        gold: {
+                            DEFAULT: '#C5A028',
+                            light: '#E6C860',
+                            dark: '#A08010',
+                        },
+                        slate: {
+                            light: '#E2E8F0',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Inter"', 'sans-serif'],
+                    },
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Custom Styles -->
+    <style>
+        /* Smooth Fade Up Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Delay utilities for staggered animation */
+        .delay-100 { transition-delay: 100ms; }
+        .delay-200 { transition-delay: 200ms; }
+        .delay-300 { transition-delay: 300ms; }
+
+        /* Typing Cursor */
+        .cursor-blink {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink {
+            0%, 100% { border-color: transparent; }
+            50% { border-color: #C5A028; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A1926;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #233554;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #C5A028;
+        }
+        
+        /* Mobile Menu Transition */
+        #mobile-menu {
+            transition: transform 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-navy-900 text-slate-300 font-sans antialiased selection:bg-gold selection:text-navy-900 overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-navy-900/90 backdrop-blur-md border-b border-white/5 transition-all duration-300" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="#" class="font-serif text-2xl text-white tracking-wide">
+                        Ю. <span class="text-gold">Иванов</span>
+                    </a>
+                </div>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#about" class="hover:text-gold transition-colors duration-300 text-sm tracking-widest uppercase">Обо мне</a>
+                        <a href="#services" class="hover:text-gold transition-colors duration-300 text-sm tracking-widest uppercase">Услуги</a>
+                        <a href="#reviews" class="hover:text-gold transition-colors duration-300 text-sm tracking-widest uppercase">Отзывы</a>
+                        <a href="#contact" class="px-5 py-2 border border-gold text-gold hover:bg-gold hover:text-navy-900 transition-all duration-300 rounded-sm text-sm font-medium">
+                            Связаться
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="-mr-2 flex md:hidden">
+                    <button type="button" onclick="toggleMenu()" class="inline-flex items-center justify-center p-2 rounded-md text-gold hover:text-white hover:bg-navy-700 focus:outline-none">
+                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Panel -->
+        <div class="md:hidden absolute w-full bg-navy-800 border-b border-white/10 shadow-2xl" id="mobile-menu" style="transform: translateY(-100%); display: none;">
+            <div class="px-4 pt-4 pb-8 space-y-4 flex flex-col items-center">
+                <a href="#about" onclick="toggleMenu()" class="block px-3 py-2 text-base font-medium text-white hover:text-gold">Обо мне</a>
+                <a href="#services" onclick="toggleMenu()" class="block px-3 py-2 text-base font-medium text-white hover:text-gold">Услуги</a>
+                <a href="#reviews" onclick="toggleMenu()" class="block px-3 py-2 text-base font-medium text-white hover:text-gold">Отзывы</a>
+                <a href="#contact" onclick="toggleMenu()" class="mt-4 w-full text-center px-5 py-3 border border-gold text-gold rounded-sm">
+                    Связаться
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative h-screen flex items-center justify-center overflow-hidden">
+        <!-- Background Image with Overlay -->
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1555099962-4199c345e5dd" 
+                 alt="Law Office Background" 
+                 class="w-full h-full object-cover object-center">
+            <div class="absolute inset-0 bg-navy-900/80 mix-blend-multiply"></div>
+            <div class="absolute inset-0 bg-gradient-radial from-transparent to-navy-900/90"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10 text-center px-4 max-w-4xl mx-auto">
+            <p class="text-gold tracking-[0.2em] uppercase text-sm mb-6 reveal">Адвокатский кабинет Москвы</p>
+            <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl text-white mb-8 leading-tight reveal delay-100">
+                Юрий <span class="italic text-gold">Иванов</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-slate-300 font-light mb-12 h-8 reveal delay-200">
+                <span id="typewriter"></span><span class="cursor-blink border-r-2 border-gold ml-1"></span>
+            </p>
+            
+            <div class="flex flex-col md:flex-row gap-6 justify-center items-center reveal delay-300">
+                <a href="#contact" class="group relative px-8 py-4 bg-gold text-navy-900 font-semibold rounded-sm overflow-hidden transition-all hover:bg-white">
+                    <span class="relative z-10">Получить консультацию</span>
+                </a>
+                <a href="tel:+79991234567" class="flex items-center gap-3 text-white hover:text-gold transition-colors group">
+                    <span class="text-lg">+7 (999) 123-45-67</span>
+                    <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-0 right-0 mx-auto w-fit animate-bounce">
+            <svg class="w-6 h-6 text-gold/50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path></svg>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 lg:py-32 bg-navy-900 relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <!-- Image Side -->
+                <div class="relative reveal">
+                    <div class="absolute -top-4 -left-4 w-24 h-24 border-t-2 border-l-2 border-gold/50"></div>
+                    <div class="absolute -bottom-4 -right-4 w-24 h-24 border-b-2 border-r-2 border-gold/50"></div>
+                    <!-- Placeholder for Portrait -->
+                    <img src="https://images.unsplash.com/photo-1497366216548-37526070297c" 
+                         alt="Юрий Иванов" 
+                         class="w-full h-[500px] object-cover rounded-sm grayscale hover:grayscale-0 transition-all duration-700 shadow-2xl">
+                </div>
+
+                <!-- Text Side -->
+                <div class="reveal delay-200">
+                    <h2 class="font-serif text-4xl text-white mb-8">Опыт, которому <span class="italic text-gold">доверяют</span></h2>
+                    <p class="text-slate-400 leading-relaxed mb-6 text-lg">
+                        Более 15 лет я защищаю интересы своих доверителей в судах Москвы и Московской области. Моя практика основана на глубоком знании закона, безупречной репутации и индивидуальном подходе к каждому делу.
+                    </p>
+                    <p class="text-slate-400 leading-relaxed mb-10 text-lg">
+                        Я убежден, что качественная юридическая помощь — это не просто знание статей, а стратегическое мышление и умение предвидеть развитие ситуации на несколько шагов вперед.
+                    </p>
+                    
+                    <div class="grid grid-cols-2 gap-8 border-t border-white/10 pt-8">
+                        <div>
+                            <span class="block text-4xl font-serif text-gold mb-2">15+</span>
+                            <span class="text-sm text-slate-500 uppercase tracking-wider">Лет практики</span>
+                        </div>
+                        <div>
+                            <span class="block text-4xl font-serif text-gold mb-2">94%</span>
+                            <span class="text-sm text-slate-500 uppercase tracking-wider">Успешных дел</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="py-24 bg-navy-800">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <div class="text-center mb-16 reveal">
+                <span class="text-gold uppercase tracking-widest text-sm">Компетенции</span>
+                <h2 class="font-serif text-4xl text-white mt-4">Сферы практики</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Service 1 -->
+                <div class="group p-8 bg-navy-900 border border-white/5 hover:border-gold/30 rounded-sm transition-all duration-300 hover:-translate-y-2 reveal delay-100">
+                    <div class="w-12 h-12 mb-6 text-gold">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    </div>
+                    <h3 class="text-xl text-white font-serif mb-4 group-hover:text-gold transition-colors">Уголовные дела</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Защита на всех стадиях уголовного процесса. Посещение в СИЗО, участие в допросах, обжалование приговоров.</p>
+                </div>
+
+                <!-- Service 2 -->
+                <div class="group p-8 bg-navy-900 border border-white/5 hover:border-gold/30 rounded-sm transition-all duration-300 hover:-translate-y-2 reveal delay-200">
+                    <div class="w-12 h-12 mb-6 text-gold">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"></path></svg>
+                    </div>
+                    <h3 class="text-xl text-white font-serif mb-4 group-hover:text-gold transition-colors">Семейное право</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Расторжение брака, раздел имущества, определение места жительства детей, взыскание алиментов.</p>
+                </div>
+
+                <!-- Service 3 -->
+                <div class="group p-8 bg-navy-900 border border-white/5 hover:border-gold/30 rounded-sm transition-all duration-300 hover:-translate-y-2 reveal delay-300">
+                    <div class="w-12 h-12 mb-6 text-gold">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                    </div>
+                    <h3 class="text-xl text-white font-serif mb-4 group-hover:text-gold transition-colors">Арбитраж</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Представительство в арбитражных судах. Договорные споры, банкротство, корпоративные конфликты.</p>
+                </div>
+
+                <!-- Service 4 -->
+                <div class="group p-8 bg-navy-900 border border-white/5 hover:border-gold/30 rounded-sm transition-all duration-300 hover:-translate-y-2 reveal delay-100">
+                    <div class="w-12 h-12 mb-6 text-gold">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <h3 class="text-xl text-white font-serif mb-4 group-hover:text-gold transition-colors">Наследство</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Оформление наследства, восстановление сроков, оспаривание завещаний, признание права собственности.</p>
+                </div>
+
+                <!-- Service 5 -->
+                <div class="group p-8 bg-navy-900 border border-white/5 hover:border-gold/30 rounded-sm transition-all duration-300 hover:-translate-y-2 reveal delay-200">
+                    <div class="w-12 h-12 mb-6 text-gold">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
+                    <h3 class="text-xl text-white font-serif mb-4 group-hover:text-gold transition-colors">Недвижимость</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Сопровождение сделок купли-продажи, проверка юридической чистоты, споры с застройщиками.</p>
+                </div>
+
+                <!-- Service 6 -->
+                <div class="group p-8 bg-navy-900 border border-white/5 hover:border-gold/30 rounded-sm transition-all duration-300 hover:-translate-y-2 reveal delay-300">
+                    <div class="w-12 h-12 mb-6 text-gold">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-xl text-white font-serif mb-4 group-hover:text-gold transition-colors">Автоюрист</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Споры со страховыми компаниями (ОСАГО/КАСКО), возврат прав, помощь при ДТП.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section id="reviews" class="py-24 bg-navy-900 border-t border-white/5">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8">
+            <h2 class="font-serif text-4xl text-white text-center mb-16 reveal">Отзывы клиентов</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Review 1 -->
+                <div class="bg-navy-800 p-8 rounded-sm border-l-2 border-gold reveal delay-100">
+                    <div class="flex text-gold mb-4">
+                        ★★★★★
+                    </div>
+                    <p class="text-slate-300 mb-6 italic">"Юрий помог мне в сложнейшем деле по разделу имущества. Благодаря его профессионализму удалось сохранить квартиру и дачу. Рекомендую!"</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-navy-700 flex items-center justify-center text-white font-serif mr-3">А</div>
+                        <div>
+                            <p class="text-white text-sm font-semibold">Алексей Петров</p>
+                            <p class="text-slate-500 text-xs">Гражданское дело</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review 2 -->
+                <div class="bg-navy-800 p-8 rounded-sm border-l-2 border-gold reveal delay-200">
+                    <div class="flex text-gold mb-4">
+                        ★★★★★
+                    </div>
+                    <p class="text-slate-300 mb-6 italic">"Обращалась за консультацией по наследству. Все объяснил четко, без лишней 'воды'. В итоге дело выиграно в мою пользу."</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-navy-700 flex items-center justify-center text-white font-serif mr-3">Е</div>
+                        <div>
+                            <p class="text-white text-sm font-semibold">Елена Соколова</p>
+                            <p class="text-slate-500 text-xs">Наследственное право</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review 3 -->
+                <div class="bg-navy-800 p-8 rounded-sm border-l-2 border-gold reveal delay-300">
+                    <div class="flex text-gold mb-4">
+                        ★★★★★
+                    </div>
+                    <p class="text-slate-300 mb-6 italic">"Спасибо за защиту в суде. Ситуация казалась безнадежной, но Юрий нашел нюансы, которые перевернули ход дела."</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-navy-700 flex items-center justify-center text-white font-serif mr-3">Д</div>
+                        <div>
+                            <p class="text-white text-sm font-semibold">Дмитрий Волков</p>
+                            <p class="text-slate-500 text-xs">Арбитраж</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-24 bg-navy-800">
+        <div class="max-w-3xl mx-auto px-6">
+            <h2 class="font-serif text-4xl text-white text-center mb-12 reveal">Частые вопросы</h2>
+            
+            <div class="space-y-4">
+                <!-- FAQ Item 1 -->
+                <div class="border border-white/10 rounded-sm bg-navy-900 overflow-hidden reveal">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none" onclick="toggleFaq(this)">
+                        <span class="text-white font-medium">Нужна ли первичная консультация?</span>
+                        <svg class="w-5 h-5 text-gold transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="px-6 pb-4 hidden text-slate-400 text-sm leading-relaxed">
+                        Первичная консультация необходима для оценки перспектив дела. На ней мы анализируем документы и я предлагаю стратегию защиты.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 2 -->
+                <div class="border border-white/10 rounded-sm bg-navy-900 overflow-hidden reveal delay-100">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none" onclick="toggleFaq(this)">
+                        <span class="text-white font-medium">Гарантируете ли вы результат?</span>
+                        <svg class="w-5 h-5 text-gold transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="px-6 pb-4 hidden text-slate-400 text-sm leading-relaxed">
+                        Ни один честный юрист не может гарантировать 100% результат, так как решение принимает суд. Однако я гарантирую максимальную проработку вашей позиции и использование всех законных методов.
+                    </div>
+                </div>
+
+                <!-- FAQ Item 3 -->
+                <div class="border border-white/10 rounded-sm bg-navy-900 overflow-hidden reveal delay-200">
+                    <button class="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none" onclick="toggleFaq(this)">
+                        <span class="text-white font-medium">Как формируется стоимость услуг?</span>
+                        <svg class="w-5 h-5 text-gold transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="px-6 pb-4 hidden text-slate-400 text-sm leading-relaxed">
+                        Стоимость зависит от сложности дела, объема работы и срочности. Мы обсуждаем цену индивидуально после изучения материалов дела.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-24 bg-navy-900 relative overflow-hidden">
+        <!-- Decor -->
+        <div class="absolute top-0 right-0 w-1/3 h-full bg-gold/5 skew-x-12 pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16">
+                <!-- Info -->
+                <div class="reveal">
+                    <h2 class="font-serif text-4xl text-white mb-6">Контакты</h2>
+                    <p class="text-slate-400 mb-12">Оставьте заявку, и я свяжусь с вами для обсуждения деталей вашего дела.</p>
+                    
+                    <div class="space-y-8">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-12 h-12 bg-navy-800 rounded-sm flex items-center justify-center text-gold">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            </div>
+                            <div class="ml-6">
+                                <h4 class="text-white font-medium">Адрес офиса</h4>
+                                <p class="text-slate-400 mt-1">г. Москва, ул. Люблинская, д. 160</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-12 h-12 bg-navy-800 rounded-sm flex items-center justify-center text-gold">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            </div>
+                            <div class="ml-6">
+                                <h4 class="text-white font-medium">Телефон</h4>
+                                <p class="text-slate-400 mt-1">+7 (999) 123-45-67</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0 w-12 h-12 bg-navy-800 rounded-sm flex items-center justify-center text-gold">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </div>
+                            <div class="ml-6">
+                                <h4 class="text-white font-medium">Email</h4>
+                                <p class="text-slate-400 mt-1">info@ivanov-law.ru</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form -->
+                <div class="bg-navy-800 p-8 rounded-sm border border-white/5 reveal delay-200">
+                    <form id="contactForm" onsubmit="handleSubmit(event)">
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-2">Ваше имя</label>
+                                <input type="text" required class="w-full bg-navy-900 border border-navy-700 text-white rounded-sm px-4 py-3 focus:outline-none focus:border-gold transition-colors" placeholder="Иван Иванов">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-2">Телефон</label>
+                                <input type="tel" required class="w-full bg-navy-900 border border-navy-700 text-white rounded-sm px-4 py-3 focus:outline-none focus:border-gold transition-colors" placeholder="+7 (999) 000-00-00">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-400 mb-2">Краткое описание проблемы</label>
+                                <textarea rows="4" class="w-full bg-navy-900 border border-navy-700 text-white rounded-sm px-4 py-3 focus:outline-none focus:border-gold transition-colors" placeholder="Опишите вашу ситуацию..."></textarea>
+                            </div>
+                            <button type="submit" class="w-full bg-gold text-navy-900 font-bold py-4 rounded-sm hover:bg-white transition-colors duration-300">
+                                Отправить заявку
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-navy-900 border-t border-white/5 py-12">
+        <div class="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0">
+                <span class="font-serif text-xl text-white">Ю. <span class="text-gold">Иванов</span></span>
+                <p class="text-slate-500 text-sm mt-2">© 2023 Все права защищены.</p>
+            </div>
+            <div class="flex space-x-6">
+                <a href="#" class="text-slate-500 hover:text-gold transition-colors">Политика конфиденциальности</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Typewriter Effect
+        const textElement = document.getElementById('typewriter');
+        const phrases = ['Адвокат по уголовным делам', 'Защитник ваших прав', 'Юридическая помощь в Москве'];
+        let phraseIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typeSpeed = 100;
+
+        function type() {
+            const currentPhrase = phrases[phraseIndex];
+            
+            if (isDeleting) {
+                textElement.textContent = currentPhrase.substring(0, charIndex - 1);
+                charIndex--;
+                typeSpeed = 50;
+            } else {
+                textElement.textContent = currentPhrase.substring(0, charIndex + 1);
+                charIndex++;
+                typeSpeed = 100;
+            }
+
+            if (!isDeleting && charIndex === currentPhrase.length) {
+                isDeleting = true;
+                typeSpeed = 2000; // Pause at end
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                phraseIndex = (phraseIndex + 1) % phrases.length;
+                typeSpeed = 500;
+            }
+
+            setTimeout(type, typeSpeed);
+        }
+
+        document.addEventListener('DOMContentLoaded', type);
+
+        // Mobile Menu Toggle
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const isHidden = menu.style.display === 'none' || menu.style.display === '';
+            
+            if (isHidden) {
+                menu.style.display = 'block';
+                setTimeout(() => {
+                    menu.style.transform = 'translateY(0)';
+                }, 10);
+            } else {
+                menu.style.transform = 'translateY(-100%)';
+                setTimeout(() => {
+                    menu.style.display = 'none';
+                }, 300);
+            }
+        }
+
+        // FAQ Toggle
+        function toggleFaq(button) {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('svg');
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // Form Submit (Demo)
+        function handleSubmit(e) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.textContent;
+            
+            btn.textContent = 'Отправлено!';
+            btn.classList.add('bg-green-600', 'text-white');
+            btn.classList.remove('bg-gold', 'text-navy-900');
+            
+            setTimeout(() => {
+                e.target.reset();
+                btn.textContent = originalText;
+                btn.classList.remove('bg-green-600', 'text-white');
+                btn.classList.add('bg-gold', 'text-navy-900');
+            }, 3000);
+        }
+
+        // Scroll Reveal Animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: "0px 0px -50px 0px"
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.reveal').forEach(el => {
+            observer.observe(el);
+        });
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('shadow-lg');
+                nav.classList.replace('bg-navy-900/90', 'bg-navy-900/95');
+            } else {
+                nav.classList.remove('shadow-lg');
+                nav.classList.replace('bg-navy-900/95', 'bg-navy-900/90');
+            }
+        });
+    </script>
+</body>
+</html>
