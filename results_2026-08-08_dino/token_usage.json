@@ -81,6 +81,11 @@
       "model": "moonshotai/kimi-k3",
       "output_tokens": 32486,
       "price": 77.5377326
+    },
+    {
+      "model": "x-ai/grok-4.6",
+      "output_tokens": 22249,
+      "price": 11
     }
   ]
 }

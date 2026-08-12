@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Динозаврик</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: #1a252f;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: none;
+}
+#game-container {
+  position: relative;
+  width: 94vw;
+  max-width: 920px;
+  height: 52vh;
+  min-height: 240px;
+  max-height: 420px;
+  background: linear-gradient(to bottom, #4fc3f7 0%, #b3e5fc 58%, #ffcc80 58%, #ffb74d 100%);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.45), inset 0 0 30px rgba(255,255,255,0.15);
+  border: 6px solid #5d4037;
+}
+canvas { display: block; width: 100%; height: 100%; }
+#ui {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  z-index: 10;
+}
+#lives { display: flex; gap: 6px; }
+.heart {
+  width: 30px;
+  height: 30px;
+  color: #e53935;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,0.35));
+  transition: color 0.35s ease, transform 0.35s ease, opacity 0.35s ease;
+}
+.heart.lost {
+  color: #78909c;
+  transform: scale(0.7) rotate(-20deg);
+  opacity: 0.5;
+}
+#score-board {
+  background: rgba(255,255,255,0.82);
+  padding: 7px 16px;
+  border-radius: 24px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #37474f;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+}
+#overlay, #gameover {
+  position: absolute;
+  inset: 0;
+  background: rgba(38, 50, 56, 0.88);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 20;
+  color: #eceff1;
+  text-align: center;
+  backdrop-filter: blur(5px);
+}
+#gameover { display: none; }
+h1 {
+  font-size: 3.1rem;
+  margin-bottom: 8px;
+  animation: titlePulse 1.8s ease-in-out infinite;
+  text-shadow: 0 5px 15px rgba(0,0,0,0.4);
+  background: linear-gradient(90deg, #66bb6a, #26a69a, #42a5f5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+@keyframes titlePulse {
+  0%, 100% { transform: scale(1) rotate(-1deg); }
+  50% { transform: scale(1.07) rotate(1deg); }
+}
+h2 {
+  font-size: 2.6rem;
+  margin-bottom: 16px;
+  color: #ef5350;
+  animation: shake 0.55s ease;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+p { font-size: 1.15rem; margin: 6px 0; opacity: 0.92; }
+.btn {
+  margin-top: 28px;
+  padding: 15px 44px;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fff;
+  background: #43a047;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 7px 0 #2e7d32, 0 10px 20px rgba(0,0,0,0.3);
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+.btn:hover {
+  background-color: #66bb6a;
+  transform: translateY(-4px) scale(1.03);
+  box-shadow: 0 10px 0 #2e7d32, 0 14px 28px rgba(0,0,0,0.35);
+}
+.btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 3px 0 #2e7d32, 0 5px 10px rgba(0,0,0,0.25);
+}
+#instructions { font-size: 0.9rem; margin-top: 18px; opacity: 0.65; }
+@media (max-width: 620px) {
+  h1 { font-size: 2.1rem; }
+  h2 { font-size: 1.9rem; }
+  .btn { padding: 12px 32px; font-size: 1.15rem; }
+  #score-board { font-size: 17px; padding: 5px 12px; }
+  .heart { width: 24px; height: 24px; }
+  #game-container { height: 48vh; }
+}
+</style>
+</head>
+<body>
+<div id="game-container">
+<canvas id="gameCanvas"></canvas>
+<div id="ui">
+<div id="lives">
+<svg class="heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+<svg class="heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+<svg class="heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+</div>
+<div id="score-board">Счёт: <span id="score">0</span></div>
+</div>
+<div id="overlay">
+<h1>Динозаврик</h1>
+<p>Перепрыгивай кактусы!</p>
+<p>У тебя 3 жизни</p>
+<button class="btn" id="startBtn">Начать игру</button>
+<p id="instructions">Пробел / Тап / Клик — прыжок</p>
+</div>
+<div id="gameover">
+<h2>Игра окончена</h2>
+<p>Твой счёт: <span id="finalScore">0</span></p>
+<p>Рекорд: <span id="highScore">0</span></p>
+<button class="btn" id="restartBtn">Играть снова</button>
+</div>
+</div>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const container = document.getElementById('game-container');
+const overlay = document.getElementById('overlay');
+const gameoverEl = document.getElementById('gameover');
+const startBtn = document.getElementById('startBtn');
+const restartBtn = document.getElementById('restartBtn');
+const scoreEl = document.getElementById('score');
+const finalScoreEl = document.getElementById('finalScore');
+const highScoreEl = document.getElementById('highScore');
+const hearts = document.querySelectorAll('.heart');
+let state = 'start';
+let score = 0;
+let highScore = parseInt(localStorage.getItem('dinoHighScore') || '0');
+let lives = 3;
+let frameCount = 0;
+let speed, gravity, jumpForce;
+let dino, cacti = [], clouds = [], groundOffset = 0, spawnTimer, invincible = 0;
+function resize() {
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+  initSizes();
+}
+function initSizes() {
+  const h = canvas.height;
+  const w = canvas.width;
+  gravity = h * 0.0017;
+  jumpForce = -h * 0.029;
+  speed = w * 0.0068;
+  dino = { x: w * 0.11, y: 0, w: h * 0.155, h: h * 0.215, vy: 0 };
+  dino.y = getGroundY() - dino.h;
+}
+function getGroundY() { return canvas.height * 0.81; }
+function resetGame() {
+  score = 0;
+  lives = 3;
+  frameCount = 0;
+  cacti = [];
+  groundOffset = 0;
+  spawnTimer = 90;
+  invincible = 0;
+  dino.vy = 0;
+  dino.y = getGroundY() - dino.h;
+  speed = canvas.width * 0.0068;
+  scoreEl.textContent = '0';
+  hearts.forEach(h => h.classList.remove('lost'));
+}
+function updateHearts() {
+  hearts.forEach((heart, i) => {
+    if (i >= lives) heart.classList.add('lost');
+    else heart.classList.remove('lost');
+  });
+}
+function spawnCactus() {
+  const h = canvas.height;
+  const types = [
+    { w: h * 0.075, h: h * 0.17, type: 0 },
+    { w: h * 0.085, h: h * 0.24, type: 1 },
+    { w: h * 0.07, h: h * 0.31, type: 2 },
+    { w: h * 0.155, h: h * 0.19, type: 3 }
+  ];
+  const t = types[Math.floor(Math.random() * types.length)];
+  cacti.push({
+    x: canvas.width + 15,
+    y: getGroundY() - t.h,
+    w: t.w,
+    h: t.h,
+    type: t.type,
+    hasFlower: Math.random() > 0.62
+  });
+}
+function jump() {
+  if (state !== 'playing') return;
+  if (dino.y >= getGroundY() - dino.h - 3) dino.vy = jumpForce;
+}
+function checkCollision(c) {
+  const p = 0.18;
+  const dx = dino.x + dino.w * p;
+  const dy = dino.y + dino.h * p;
+  const dw = dino.w * (1 - 2 * p);
+  const dh = dino.h * (1 - 2 * p);
+  return dx < c.x + c.w && dx + dw > c.x && dy < c.y + c.h && dy + dh > c.y;
+}
+function update() {
+  if (state !== 'playing') return;
+  frameCount++;
+  dino.vy += gravity;
+  dino.y += dino.vy;
+  const gy = getGroundY() - dino.h;
+  if (dino.y > gy) { dino.y = gy; dino.vy = 0; }
+  for (let i = cacti.length - 1; i >= 0; i--) {
+    cacti[i].x -= speed;
+    if (cacti[i].x + cacti[i].w < 0) {
+      cacti.splice(i, 1);
+      score += 15;
+    } else if (invincible <= 0 && checkCollision(cacti[i])) {
+      lives--;
+      updateHearts();
+      invincible = 75;
+      if (lives <= 0) { endGame(); return; }
+    }
+  }
+  spawnTimer--;
+  if (spawnTimer <= 0) {
+    spawnCactus();
+    spawnTimer = 55 + Math.random() * 70 - Math.min(score / 25, 35);
+  }
+  if (frameCount % 180 === 0) speed *= 1.035;
+  if (frameCount % 4 === 0) {
+    score++;
+    scoreEl.textContent = score;
+  }
+  if (invincible > 0) invincible--;
+  groundOffset += speed;
+}
+function endGame() {
+  state = 'gameover';
+  if (score > highScore) {
+    highScore = score;
+    localStorage.setItem('dinoHighScore', highScore);
+  }
+  finalScoreEl.textContent = score;
+  highScoreEl.textContent = highScore;
+  gameoverEl.style.display = 'flex';
+}
+function drawClouds() {
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  clouds.forEach(cl => {
+    cl.x -= cl.spd;
+    if (cl.x < -cl.s * 2.2) cl.x = canvas.width + cl.s;
+    ctx.beginPath();
+    ctx.arc(cl.x, cl.y, cl.s, 0, Math.PI * 2);
+    ctx.arc(cl.x + cl.s * 0.65, cl.y - cl.s * 0.35, cl.s * 0.72, 0, Math.PI * 2);
+    ctx.arc(cl.x + cl.s * 1.25, cl.y + cl.s * 0.08, cl.s * 0.8, 0, Math.PI * 2);
+    ctx.arc(cl.x + cl.s * 0.35, cl.y + cl.s * 0.28, cl.s * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+function drawGround() {
+  const gy = getGroundY();
+  ctx.fillStyle = '#d7a86e';
+  ctx.fillRect(0, gy, canvas.width, canvas.height - gy);
+  ctx.strokeStyle = '#c4945c';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let x = -(groundOffset % 48); x < canvas.width + 20; x += 48) {
+    ctx.moveTo(x, gy);
+    ctx.lineTo(x + 14, gy + 7);
+    ctx.lineTo(x + 28, gy);
+  }
+  ctx.stroke();
+  ctx.fillStyle = '#8d6e4a';
+  for (let i = 0; i < 7; i++) {
+    const px = ((i * 157 + groundOffset * 0.35) % (canvas.width + 50)) - 25;
+    ctx.beginPath();
+    ctx.arc(px, gy + 12 + (i % 3) * 7, 2.5 + (i % 3), 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+function drawDino() {
+  if (invincible > 0 && Math.floor(frameCount / 5) % 2 === 0) return;
+  ctx.save();
+  ctx.translate(dino.x, dino.y);
+  const w = dino.w, h = dino.h;
+  ctx.fillStyle = '#43a047';
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(w * 0.14, h * 0.27, w * 0.66, h * 0.5, [7, 11, 5, 7]);
+  else ctx.rect(w * 0.14, h * 0.27, w * 0.66, h * 0.5);
+  ctx.fill();
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(w * 0.44, h * 0.01, w * 0.53, h * 0.42, 11);
+  else ctx.rect(w * 0.44, h * 0.01, w * 0.53, h * 0.42);
+  ctx.fill();
+  ctx.fillStyle = '#2e7d32';
+  ctx.fillRect(w * 0.83, h * 0.2, w * 0.17, h * 0.13);
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(w * 0.73, h * 0.15, w * 0.085, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1b1b1b';
+  ctx.beginPath();
+  ctx.arc(w * 0.76, h * 0.15, w * 0.042, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(w * 0.74, h * 0.13, w * 0.018, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#2e7d32';
+  const onGround = Math.abs(dino.vy) < 0.4 && dino.y >= getGroundY() - dino.h - 2;
+  const runCycle = Math.floor(frameCount / 5) % 2;
+  if (!onGround) {
+    ctx.save();
+    ctx.translate(w * 0.24, h * 0.7);
+    ctx.rotate(-0.45);
+    ctx.fillRect(0, 0, w * 0.15, h * 0.3);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(w * 0.54, h * 0.7);
+    ctx.rotate(0.35);
+    ctx.fillRect(0, 0, w * 0.15, h * 0.3);
+    ctx.restore();
+  } else if (runCycle) {
+    ctx.fillRect(w * 0.19, h * 0.67, w * 0.17, h * 0.33);
+    ctx.fillRect(w * 0.51, h * 0.77, w * 0.17, h * 0.23);
+  } else {
+    ctx.fillRect(w * 0.19, h * 0.77, w * 0.17, h * 0.23);
+    ctx.fillRect(w * 0.51, h * 0.67, w * 0.17, h * 0.33);
+  }
+  ctx.fillStyle = '#43a047';
+  ctx.beginPath();
+  ctx.moveTo(w * 0.13, h * 0.37);
+  ctx.quadraticCurveTo(-w * 0.18, h * 0.48, w * 0.04, h * 0.64);
+  ctx.lineTo(w * 0.2, h * 0.54);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(27, 94, 32, 0.45)';
+  ctx.beginPath(); ctx.arc(w * 0.34, h * 0.43, w * 0.055, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(w * 0.48, h * 0.56, w * 0.045, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+function drawCactus(c) {
+  ctx.save();
+  ctx.fillStyle = '#2e7d32';
+  ctx.strokeStyle = '#1b5e20';
+  ctx.lineWidth = 1.5;
+  const { x, y, w, h, type, hasFlower } = c;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x, y, w, h, 5);
+  else ctx.rect(x, y, w, h);
+  ctx.fill();
+  ctx.stroke();
+  if (type === 1 || type === 2) {
+    const armY = type === 2 ? y + h * 0.22 : y + h * 0.33;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x - w * 0.68, armY, w * 0.72, w * 0.42, 4);
+    else ctx.rect(x - w * 0.68, armY, w * 0.72, w * 0.42);
+    ctx.fill(); ctx.stroke();
+    const armY2 = type === 2 ? y + h * 0.48 : y + h * 0.52;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x + w * 0.28, armY2, w * 0.68, w * 0.38, 4);
+    else ctx.rect(x + w * 0.28, armY2, w * 0.68, w * 0.38);
+    ctx.fill(); ctx.stroke();
+  }
+  if (type === 3) {
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x + w * 0.52, y + h * 0.12, w * 0.48, h * 0.88, 4);
+    else ctx.rect(x + w * 0.52, y + h * 0.12, w * 0.48, h * 0.88);
+    ctx.fill(); ctx.stroke();
+  }
+  if (hasFlower && type !== 3) {
+    ctx.fillStyle = '#ec407a';
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y - 5, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffee58';
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y - 5, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawClouds();
+  drawGround();
+  cacti.forEach(drawCactus);
+  if (dino) drawDino();
+}
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+function startGame() {
+  overlay.style.display = 'none';
+  gameoverEl.style.display = 'none';
+  resetGame();
+  state = 'playing';
+}
+startBtn.addEventListener('click', startGame);
+restartBtn.addEventListener('click', startGame);
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.key === 'ArrowUp' || e.key === ' ') {
+    e.preventDefault();
+    if (state === 'start' || state === 'gameover') startGame();
+    else jump();
+  }
+});
+container.addEventListener('click', e => {
+  if (e.target.tagName === 'BUTTON') return;
+  if (state === 'playing') jump();
+  else startGame();
+});
+container.addEventListener('touchstart', e => {
+  if (e.target.tagName === 'BUTTON') return;
+  e.preventDefault();
+  if (state === 'playing') jump();
+  else startGame();
+}, { passive: false });
+window.addEventListener('resize', resize);
+highScoreEl.textContent = highScore;
+resize();
+for (let i = 0; i < 5; i++) {
+  clouds.push({
+    x: Math.random() * canvas.width,
+    y: canvas.height * 0.04 + Math.random() * canvas.height * 0.22,
+    s: canvas.height * 0.055 + Math.random() * canvas.height * 0.045,
+    spd: 0.18 + Math.random() * 0.45
+  });
+}
+loop();
+</script>
+</body>
+</html>
