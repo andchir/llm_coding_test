@@ -14,7 +14,8 @@
             box-shadow: 0 10px 30px rgba(23, 32, 51, .06); overflow: hidden; }
     .prompt { padding: 24px; border-bottom: 1px solid #e7ebf2; }
     .label { margin: 0 0 8px; color: #68738a; font-size: 13px; font-weight: 700;
-             letter-spacing: .08em; text-transform: uppercase; }
+             letter-spacing: .08em; }
+    .label.label-uppercase { text-transform: uppercase; }
     .prompt-text { margin: 0; line-height: 1.6; white-space: pre-wrap; }
     .stats { display: flex; gap: 32px; padding: 20px 24px; background: #f9fafc; }
     .stat strong { display: block; font-size: 22px; }
@@ -44,7 +45,8 @@
     <h1>Сводка результатов LLM</h1>
     <section class="card">
       <div class="prompt">
-        <p class="label">Prompt</p>
+        <p class="label"><a href="https://github.com/andchir/llm_coding_test">https://github.com/andchir/llm_coding_test</a></p>
+        <p class="label label-uppercase">Prompt</p>
         <p class="prompt-text">Стильный оффлайн аудиоплеер с анимацией звуковой волны. Можно загрузить mp3 и проиграть.</p>
       </div>
       <div class="stats">
