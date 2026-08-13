@@ -86,6 +86,11 @@
       "model": "x-ai/grok-4.6",
       "output_tokens": 22249,
       "price": 11
+    },
+    {
+      "model": "bytedance-seed/seed-2.0-code",
+      "output_tokens": 6668,
+      "price": 1.6683
     }
   ]
 }

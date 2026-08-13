@@ -123,6 +123,9 @@ def save_token_usage(
     separately. A model has a single result file, so its usage entry is updated
     instead of duplicated when the model is run again.
     """
+    if not isinstance(output_tokens, (int, float)) or output_tokens <= 0:
+        return None
+
     output_path = Path(output_dir)
     output_path.mkdir(exist_ok=True)
     usage_path = output_path / 'token_usage.json'
@@ -191,10 +194,12 @@ def call_llm_api(base_url, api_key, model, prompt, system_prompt, temperature=0.
             )
             return content, output_tokens
         else:
-            return f"Error: Unexpected response format: {data}", 0
+            print(f"  Error: unexpected response format: {data}")
+            return None, 0
 
-    except requests.exceptions.RequestException as e:
-        return f"Error calling API: {str(e)}", 0
+    except (requests.exceptions.RequestException, KeyError, TypeError, ValueError) as e:
+        print(f"  Error calling API: {e}")
+        return None, 0
 
 
 def main():
@@ -239,10 +244,6 @@ def main():
     print(f"Base URL: {base_url}")
     print(f"Prompt: {prompt}\n")
 
-    # Keep the shared prompt current even when every model is skipped.
-    usage_path = update_usage_prompt(prompt, folder_name, currency)
-    print(f"Usage data: {usage_path}\n")
-
     # Process each model
     for i, model in enumerate(models, 1):
         print(f"[{i}/{len(models)}] Processing model: {model}")
@@ -262,8 +263,24 @@ def main():
             temperature,
         )
 
+        # Do not create any artifacts for failed or empty responses.
+        if (
+            not response_content
+            or not isinstance(output_tokens, (int, float))
+            or output_tokens <= 0
+        ):
+            print(
+                "  → No result; HTML and usage data were not created "
+                f"(output tokens: {output_tokens})"
+            )
+            continue
+
         # Clean Markdown code blocks from response
         cleaned_content = clean_markdown_code_blocks(response_content)
+
+        if not cleaned_content:
+            print("  → No result; HTML and usage data were not created (empty content)")
+            continue
 
         # Create HTML file
         filepath = create_html_file(model, cleaned_content, folder_name)

@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Динозаврик Платформер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 50%, #8B7355 50%, #6B4423 100%);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .lives-container {
+            display: flex;
+            gap: 8px;
+        }
+
+        .heart {
+            width: 30px;
+            height: 30px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            transition: all 0.3s ease;
+        }
+
+        .heart.lost {
+            opacity: 0.3;
+            transform: scale(0.8);
+        }
+
+        .score-display {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px 20px;
+            border-radius: 30px;
+        }
+
+        .menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.5s ease;
+        }
+
+        .menu-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(0.95);
+        }
+
+        .menu-title {
+            font-size: 48px;
+            font-weight: 800;
+            color: #FFD700;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .menu-subtitle {
+            font-size: 18px;
+            color: #fff;
+            opacity: 0.9;
+        }
+
+        .menu-button {
+            padding: 15px 50px;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+            pointer-events: auto;
+        }
+
+        .menu-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.5);
+        }
+
+        .menu-button:active {
+            transform: translateY(0);
+        }
+
+        .instructions {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .menu-title {
+                font-size: 36px;
+            }
+            .score-display {
+                font-size: 18px;
+                padding: 6px 15px;
+            }
+            .heart {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="ui-overlay">
+            <div class="lives-container" id="livesContainer"></div>
+            <div class="score-display">Счет: <span id="scoreValue">0</span></div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div class="menu-overlay" id="startMenu">
+            <div class="menu-title">🦕 Динозаврик</div>
+            <div class="menu-subtitle">Перепрыгивай кактусы и набери очки!</div>
+            <button class="menu-button" id="startButton">Начать игру</button>
+            <div class="instructions">Нажми пробел, клик или тач для прыжка</div>
+        </div>
+        <div class="menu-overlay hidden" id="gameOverMenu">
+            <div class="menu-title">💀 Игра окончена</div>
+            <div class="menu-subtitle">Твой счет: <span id="finalScore">0</span></div>
+            <button class="menu-button" id="restartButton">Играть снова</button>
+        </div>
+    </div>
+
+    <script>
+        class DinoGame {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.canvas.width = 900;
+                this.canvas.height = 400;
+
+                this.isPlaying = false;
+                this.score = 0;
+                this.lives = 3;
+                this.gameSpeed = 5;
+                this.gravity = 0.6;
+                this.jumpForce = -14;
+
+                this.groundY = this.canvas.height - 70;
+
+                this.dino = {
+                    x: 100,
+                    y: this.groundY - 60,
+                    width: 50,
+                    height: 60,
+                    velocityY: 0,
+                    isJumping: false,
+                    isInvincible: false,
+                    invincibleTime: 0,
+                    legFrame: 0
+                };
+
+                this.cacti = [];
+                this.clouds = [];
+                this.particles = [];
+                this.cactusSpawnTimer = 0;
+                this.minSpawnInterval = 80;
+
+                this.initClouds();
+                this.initHearts();
+                this.bindEvents();
+                this.gameLoop();
+            }
+
+            initHearts() {
+                const container = document.getElementById('livesContainer');
+                container.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    const heart = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    heart.setAttribute('viewBox', '0 0 24 24');
+                    heart.classList.add('heart');
+                    heart.innerHTML = '<path fill="#FF6B6B" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>';
+                    container.appendChild(heart);
+                }
+            }
+
+            updateHearts() {
+                const hearts = document.querySelectorAll('.heart');
+                hearts.forEach((heart, index) => {
+                    if (index < this.lives) {
+                        heart.classList.remove('lost');
+                    } else {
+                        heart.classList.add('lost');
+                    }
+                });
+            }
+
+            initClouds() {
+                for (let i = 0; i < 5; i++) {
+                    this.clouds.push({
+                        x: Math.random() * this.canvas.width,
+                        y: 40 + Math.random() * 80,
+                        width: 80 + Math.random() * 60,
+                        speed: 0.5 + Math.random() * 0.5
+                    });
+                }
+            }
+
+            bindEvents() {
+                const jump = (e) => {
+                    if (e.code === 'Space' || e.type === 'click' || e.type === 'touchstart') {
+                        e.preventDefault();
+                        if (!this.isPlaying) return;
+                        this.jump();
+                    }
+                };
+
+                document.addEventListener('keydown', jump);
+                this.canvas.addEventListener('click', jump);
+                this.canvas.addEventListener('touchstart', jump, { passive: false });
+
+                document.getElementById('startButton').addEventListener('click', () => this.startGame());
+                document.getElementById('restartButton').addEventListener('click', () => this.startGame());
+
+                window.addEventListener('resize', () => {
+                    this.canvas.style.maxWidth = '100%';
+                });
+            }
+
+            startGame() {
+                this.isPlaying = true;
+                this.score = 0;
+                this.lives = 3;
+                this.gameSpeed = 5;
+                this.cacti = [];
+                this.particles = [];
+                this.cactusSpawnTimer = 0;
+
+                this.dino.y = this.groundY - this.dino.height;
+                this.dino.velocityY = 0;
+                this.dino.isJumping = false;
+                this.dino.isInvincible = false;
+
+                document.getElementById('startMenu').classList.add('hidden');
+                document.getElementById('gameOverMenu').classList.add('hidden');
+
+                this.updateHearts();
+                this.updateScore();
+            }
+
+            jump() {
+                if (!this.dino.isJumping) {
+                    this.dino.velocityY = this.jumpForce;
+                    this.dino.isJumping = true;
+                    this.createDustParticles();
+                }
+            }
+
+            createDustParticles() {
+                for (let i = 0; i < 5; i++) {
+                    this.particles.push({
+                        x: this.dino.x + this.dino.width / 2,
+                        y: this.groundY,
+                        size: 3 + Math.random() * 4,
+                        velocityX: -2 + Math.random() * 4,
+                        velocityY: -Math.random() * 2,
+                        life: 30,
+                        color: '#D2B48C'
+                    });
+                }
+            }
+
+            createHitParticles(x, y) {
+                for (let i = 0; i < 10; i++) {
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        size: 4 + Math.random() * 6,
+                        velocityX: -3 + Math.random() * 6,
+                        velocityY: -3 + Math.random() * -3,
+                        life: 40,
+                        color: '#FF6B6B'
+                    });
+                }
+            }
+
+            spawnCactus() {
+                const types = [
+                    { width: 30, height: 50 },
+                    { width: 40, height: 60 },
+                    { width: 25, height: 45 },
+                    { width: 50, height: 55 }
+                ];
+                const type = types[Math.floor(Math.random() * types.length)];
+                
+                this.cacti.push({
+                    x: this.canvas.width + 50,
+                    y: this.groundY - type.height,
+                    width: type.width,
+                    height: type.height,
+                    passed: false
+                });
+            }
+
+            checkCollision(rect1, rect2) {
+                const padding = 8;
+                return rect1.x + padding < rect2.x + rect2.width - padding &&
+                       rect1.x + rect1.width - padding > rect2.x + padding &&
+                       rect1.y + padding < rect2.y + rect2.height - padding &&
+                       rect1.y + rect1.height - padding > rect2.y + padding;
+            }
+
+            update() {
+                if (!this.isPlaying) return;
+
+                this.score += Math.floor(this.gameSpeed / 2);
+                this.updateScore();
+
+                if (this.score % 500 === 0) {
+                    this.gameSpeed = Math.min(this.gameSpeed + 0.5, 15);
+                }
+
+                this.dino.velocityY += this.gravity;
+                this.dino.y += this.dino.velocityY;
+
+                if (this.dino.y >= this.groundY - this.dino.height) {
+                    this.dino.y = this.groundY - this.dino.height;
+                    this.dino.velocityY = 0;
+                    this.dino.isJumping = false;
+                }
+
+                this.dino.legFrame += 0.2;
+
+                if (this.dino.isInvincible) {
+                    this.dino.invincibleTime--;
+                    if (this.dino.invincibleTime <= 0) {
+                        this.dino.isInvincible = false;
+                    }
+                }
+
+                this.cactusSpawnTimer++;
+                const spawnInterval = Math.max(this.minSpawnInterval - this.score / 100, 50);
+                if (this.cactusSpawnTimer >= spawnInterval) {
+                    this.spawnCactus();
+                    this.cactusSpawnTimer = 0;
+                }
+
+                for (let i = this.cacti.length - 1; i >= 0; i--) {
+                    const cactus = this.cacti[i];
+                    cactus.x -= this.gameSpeed;
+
+                    if (!this.dino.isInvincible && this.checkCollision(this.dino, cactus)) {
+                        this.lives--;
+                        this.updateHearts();
+                        this.createHitParticles(this.dino.x + this.dino.width / 2, this.dino.y + this.dino.height / 2);
+                        
+                        if (this.lives <= 0) {
+                            this.gameOver();
+                            return;
+                        } else {
+                            this.dino.isInvincible = true;
+                            this.dino.invincibleTime = 120;
+                        }
+                    }
+
+                    if (cactus.x + cactus.width < 0) {
+                        this.cacti.splice(i, 1);
+                    }
+                }
+
+                for (const cloud of this.clouds) {
+                    cloud.x -= cloud.speed;
+                    if (cloud.x + cloud.width < 0) {
+                        cloud.x = this.canvas.width;
+                        cloud.y = 40 + Math.random() * 80;
+                    }
+                }
+
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.velocityX;
+                    p.y += p.velocityY;
+                    p.velocityY += 0.1;
+                    p.life--;
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+
+            draw() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                const skyGradient = this.ctx.createLinearGradient(0, 0, 0, this.groundY);
+                skyGradient.addColorStop(0, '#87CEEB');
+                skyGradient.addColorStop(1, '#E0F6FF');
+                this.ctx.fillStyle = skyGradient;
+                this.ctx.fillRect(0, 0, this.canvas.width, this.groundY);
+
+                this.ctx.fillStyle = '#FFD700';
+                this.ctx.beginPath();
+                this.ctx.arc(this.canvas.width - 80, 60, 35, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                for (const cloud of this.clouds) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(cloud.x, cloud.y, cloud.width * 0.3, 0, Math.PI * 2);
+                    this.ctx.arc(cloud.x + cloud.width * 0.3, cloud.y - 10, cloud.width * 0.25, 0, Math.PI * 2);
+                    this.ctx.arc(cloud.x + cloud.width * 0.6, cloud.y, cloud.width * 0.3, 0, Math.PI * 2);
+                    this.ctx.arc(cloud.x + cloud.width * 0.3, cloud.y + 5, cloud.width * 0.2, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+
+                this.ctx.fillStyle = '#8B7355';
+                this.ctx.fillRect(0, this.groundY, this.canvas.width, this.canvas.height - this.groundY);
+
+                this.ctx.fillStyle = '#6B4423';
+                for (let i = 0; i < this.canvas.width; i += 40) {
+                    this.ctx.fillRect(i, this.groundY, 2, 5);
+                }
+
+                for (const cactus of this.cacti) {
+                    this.drawCactus(cactus);
+                }
+
+                if (!this.dino.isInvincible || Math.floor(this.dino.invincibleTime / 5) % 2 === 0) {
+                    this.drawDino();
+                }
+
+                for (const p of this.particles) {
+                    this.ctx.globalAlpha = p.life / 40;
+                    this.ctx.fillStyle = p.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                this.ctx.globalAlpha = 1;
+            }
+
+            drawDino() {
+                const d = this.dino;
+                this.ctx.fillStyle = '#4A7C59';
+
+                this.ctx.beginPath();
+                this.ctx.roundRect(d.x + 10, d.y + 15, 35, 30, 8);
+                this.ctx.fill();
+
+                this.ctx.beginPath();
+                this.ctx.roundRect(d.x + 30, d.y, 25, 25, 8);
+                this.ctx.fill();
+
+                this.ctx.fillStyle = '#fff';
+                this.ctx.beginPath();
+                this.ctx.arc(d.x + 45, d.y + 10, 6, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.fillStyle = '#000';
+                this.ctx.beginPath();
+                this.ctx.arc(d.x + 47, d.y + 10, 3, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                this.ctx.fillStyle = '#4A7C59';
+                this.ctx.beginPath();
+                this.ctx.ellipse(d.x, d.y + 30, 12, 6, -0.3, 0, Math.PI * 2);
+                this.ctx.fill();
+
+                const legOffset = Math.sin(d.legFrame * 2) * 4;
+                this.ctx.fillStyle = '#3D6B4A';
+
+                this.ctx.beginPath();
+                this.ctx.roundRect(d.x + 15 + (d.isJumping ? -3 : legOffset), d.y + 40, 10, 20, 3);
+                this.ctx.fill();
+
+                this.ctx.beginPath();
+                this.ctx.roundRect(d.x + 30 + (d.isJumping ? 3 : -legOffset), d.y + 40, 10, 20, 3);
+                this.ctx.fill();
+            }
+
+            drawCactus(cactus) {
+                const c = cactus;
+
+                this.ctx.fillStyle = '#2E7D32';
+                this.ctx.beginPath();
+                this.ctx.roundRect(c.x + c.width * 0.3, c.y, c.width * 0.4, c.height, 5);
+                this.ctx.fill();
+
+                if (c.width > 30) {
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(c.x, c.y + c.height * 0.3, c.width * 0.35, c.height * 0.15, 3);
+                    this.ctx.fill();
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(c.x, c.y + c.height * 0.15, c.width * 0.2, c.height * 0.25, 3);
+                    this.ctx.fill();
+
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(c.x + c.width * 0.65, c.y + c.height * 0.5, c.width * 0.35, c.height * 0.15, 3);
+                    this.ctx.fill();
+                    this.ctx.beginPath();
+                    this.ctx.roundRect(c.x + c.width * 0.8, c.y + c.height * 0.35, c.width * 0.2, c.height * 0.3, 3);
+                    this.ctx.fill();
+                }
+
+                this.ctx.strokeStyle = '#1B5E20';
+                this.ctx.lineWidth = 2;
+                for (let i = 0; i < 4; i++) {
+                    const y = c.y + c.height * (0.2 + i * 0.2);
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(c.x + c.width * 0.3, y);
+                    this.ctx.lineTo(c.x + c.width * 0.7, y);
+                    this.ctx.stroke();
+                }
+            }
+
+            updateScore() {
+                document.getElementById('scoreValue').textContent = Math.floor(this.score);
+            }
+
+            gameOver() {
+                this.isPlaying = false;
+                document.getElementById('finalScore').textContent = Math.floor(this.score);
+                document.getElementById('gameOverMenu').classList.remove('hidden');
+            }
+
+            gameLoop() {
+                this.update();
+                this.draw();
+                requestAnimationFrame(() => this.gameLoop());
+            }
+        }
+
+        window.onload = () => {
+            new DinoGame();
+        };
+    </script>
+</body>
+</html>

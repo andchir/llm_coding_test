@@ -56,6 +56,11 @@
       "model": "moonshotai/kimi-k3",
       "output_tokens": 17610,
       "price": 21.995
+    },
+    {
+      "model": "bytedance-seed/seed-2.0-code",
+      "output_tokens": 12248,
+      "price": 3.0544
     }
   ]
 }
