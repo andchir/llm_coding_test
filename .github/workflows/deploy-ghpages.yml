@@ -38,12 +38,6 @@ jobs:
             fi
           done
 
-          mkdir -p deploy/tetris
-          cp -r tetris/* deploy/tetris/
-
-          mkdir -p deploy/uikit
-          cp -r uikit/* deploy/uikit/
-
           touch deploy/.nojekyll
 
       - name: Setup Pages
