@@ -59,8 +59,8 @@
     },
     {
       "model": "bytedance-seed/seed-2.0-code",
-      "output_tokens": 12248,
-      "price": 3.0544
+      "output_tokens": 27000,
+      "price": 6.7313
     }
   ]
 }
